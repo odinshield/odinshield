@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# markdownlint-cli2 for `make md-lint` / `make md-fix` (#264).
+gitignore: true
+config:
+    # Prose is not hard-wrapped; long lines are the norm in the manual and the docs.
+    MD013: false
+    # The manual uses HTML components (bento grids, <details>, inline SVG) on purpose.
+    MD033: false
+    # Table column alignment is cosmetic and churns on every edit.
+    MD060: false
+ignores:
+    # Written by the agents themselves; not hand-maintained documentation.
+    - ".claude/agent-memory/**"
+    - ".claude/memory/**"
+    - "MEMORY.md"
+    # Prompt definitions in Claude Code's own format (frontmatter + instructions), not docs.
+    - ".claude/agents/**"
+    - ".claude/skills/**"

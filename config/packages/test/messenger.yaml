@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+framework:
+    messenger:
+        transports:
+            sync: 'sync://'
+        routing:
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: sync

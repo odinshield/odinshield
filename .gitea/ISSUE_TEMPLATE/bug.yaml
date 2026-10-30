@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Bug Report
+about: Ein Fehlverhalten in OdinShield melden
+title: "FIX "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke für die Meldung. Bitte fülle die Felder so vollständig wie möglich aus — das beschleunigt die Eingrenzung.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Welche OdinShield-Version (siehe Footer / VERSION)?
+      placeholder: "2.0.0-rc.18"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+      description: Was sollte passieren?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Tatsächliches Verhalten
+      description: Was passiert stattdessen? Fehlermeldungen, Logs (var/log/), Screenshots.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zur Reproduktion
+      description: Möglichst minimal und nummeriert.
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Schweregrad
+      options:
+        - "prio: low"
+        - "prio: medium"
+        - "prio: high"
+        - "prio: critical"
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Umgebung / Kontext
+      description: Browser, Deploy (Traefik/Compose), DB-Größe, Rolle des Benutzers usw.
+    validations:
+      required: false

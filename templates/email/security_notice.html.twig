@@ -1,0 +1,65 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+  #269: security notice after an e-mail or password change. `notice` is
+  MailNotifier::NOTICE_EMAIL_CHANGED or NOTICE_PASSWORD_CHANGED; `new_email` arrives masked.
+#}
+{% set key = 'email.security_notice.' ~ notice %}
+{% set params = {
+    '%username%': user.username,
+    '%date%': changed_at|format_datetime(dateFormat: 'medium', timeFormat: 'short', locale: locale),
+    '%new_email%': new_email ?? '',
+} %}
+{% apply inline_css(source('email/email.css')) %}
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ (key ~ '.subject')|trans }}</title>
+</head>
+<body>
+<table class="body-wrap" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center">
+            <table class="container" width="600" cellpadding="0" cellspacing="0">
+
+                {# ── Header ──────────────────────────────────────────────── #}
+                <tr class="header-row">
+                    <td class="header-cell">
+                        <p class="header-logo">OdinShield</p>
+                    </td>
+                </tr>
+
+                {# ── Body ─────────────────────────────────────────────────── #}
+                <tr class="body-row">
+                    <td class="body-cell">
+
+                        <p>{{ 'email.security_notice.greeting'|trans({'%name%': user.firstName ?? user.username}) }},</p>
+
+                        <p class="intro">{{ (key ~ (by_admin ? '.intro_admin' : '.intro'))|trans(params) }}</p>
+
+                        <p>{{ 'email.security_notice.not_you'|trans }}</p>
+
+                        <p class="outro">{{ 'email.vulnerability_assigned.outro'|trans }}</p>
+
+                    </td>
+                </tr>
+
+                {# ── Footer ───────────────────────────────────────────────── #}
+                <tr class="footer-row">
+                    <td class="footer-cell">
+                        <p class="footer-text">{{ 'email.security_notice.footer'|trans }}</p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
+{% endapply %}

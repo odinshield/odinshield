@@ -1,0 +1,166 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+  Shared form macros for reuse across templates and Live Components.
+
+  Usage:
+    {% from '_include/_form_macros.html.twig' import eol_datepicker, help_toggle, help_text, help_switch %}
+    {{ eol_datepicker(form.eolDate, app.request.locale) }}
+
+  Collapsible field help (#79): `help_toggle` sits next to the label, `help_text` renders the
+  hint itself, `help_switch` is the per-form "show everything" switch. The single source for a
+  hint is the form type's `help` option, read as `field.vars.help`; only hints that belong to
+  something which is not a form field pass their translation key directly.
+
+  Progressive enhancement is deliberate: the markup renders the hint VISIBLE and
+  `aria-expanded="true"`. The `form-help` Stimulus controller collapses it on connect. Without
+  JavaScript every hint therefore stays readable — which is exactly today's behaviour.
+#}
+
+{#
+  Renders an EOL date field with the Litepicker (datepicker) Stimulus controller.
+
+  @param field  FormView  The eolDate form field view
+  @param locale string    Current request locale (app.request.locale)
+#}
+{% macro eol_datepicker(field, locale) %}
+    <label class="form-label" for="{{ field.vars.id }}">
+        {{ field.vars.label|trans }}
+    </label>
+    <div class="input-icon" data-controller="datepicker"
+         data-datepicker-format-value="{{ 'software.field.eol_date_format'|trans }}"
+         data-datepicker-lang-value="{{ locale }}">
+        <span class="input-icon-addon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon">
+                <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/>
+                <path d="M16 3v4"/>
+                <path d="M8 3v4"/>
+                <path d="M4 11h16"/>
+                <path d="M11 15h1"/>
+                <path d="M12 15v3"/>
+            </svg>
+        </span>
+        {# L28: no `readonly` — keyboard users must be able to type a date. The field parses the
+           same DD.MM.YYYY format the picker displays, so a typed value submits and validates. #}
+        {{ form_widget(field, {'attr': {
+            'class': 'form-control' ~ (not field.vars.valid ? ' is-invalid'),
+            'data-datepicker-target': 'input',
+            'placeholder': 'software.field.eol_date_placeholder',
+        }}) }}
+    </div>
+    {{ _self.field_errors(field) }}
+{% endmacro %}
+
+{#
+  Toggle button for a single field's help text. Renders nothing without a hint.
+
+  @param id   string  DOM id of the field the hint belongs to (field.vars.id)
+  @param text string|null  Translation key of the hint, or null
+#}
+{% macro help_toggle(id, text) %}
+    {% if text %}
+        <button type="button"
+                {# No .btn classes: they force a 28px box that makes a label with a toggle taller
+                   than one without, which pushes the field below out of line with its neighbour.
+                   lh-1 keeps the button inside the label's line box. WCAG 2.2 target size (2.5.8)
+                   allows this — the icon is inline and constrained by the line-height around it. #}
+                class="border-0 bg-transparent p-0 ms-1 lh-1 align-middle text-secondary"
+                data-form-help-target="toggle"
+                data-action="form-help#toggle"
+                aria-controls="help_{{ id }}"
+                aria-expanded="true"
+                data-label-show="{{ 'common.form_help.show'|trans }}"
+                data-label-hide="{{ 'common.form_help.hide'|trans }}"
+                title="{{ 'common.form_help.hide'|trans }}">
+            {# Tabler "info-circle" #}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon d-block" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/>
+                <path d="M12 9h.01"/>
+                <path d="M11 12h1v4h1"/>
+            </svg>
+            <span class="visually-hidden">{{ 'common.form_help.hide'|trans }}</span>
+        </button>
+    {% endif %}
+{% endmacro %}
+
+{#
+  The hint itself. Renders nothing without a hint.
+
+  @param id      string       DOM id of the field the hint belongs to (field.vars.id)
+  @param text    string|null  Translation key of the hint, or null
+  @param classes string       Extra CSS classes, for hints that need layout (e.g. 'mt-1 d-block')
+  @param params  array        Translation parameters of the hint (field.vars.help_translation_parameters)
+#}
+{% macro help_text(id, text, classes = '', params = {}) %}
+    {% if text %}
+        <small class="form-hint{{ classes ? ' ' ~ classes }}" id="help_{{ id }}" data-form-help-target="hint">{{ text|trans(params) }}</small>
+    {% endif %}
+{% endmacro %}
+
+{#
+  Link to the NVD CPE Search below a vendor/product key field (#323): an advisory's CPE carries
+  the vendor and product part the importer matches on. Always visible, not part of the
+  collapsible hint — it is a tool, not an explanation. Plain link, no CSP change needed.
+#}
+{% macro nvd_cpe_link() %}
+    <small class="d-block mt-1">
+        <a href="https://nvd.nist.gov/products/cpe/search" target="_blank" rel="noopener noreferrer">
+            {{- 'common.nvd_cpe_search'|trans -}}
+            {# Tabler "external-link" #}
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon ms-1 align-text-bottom" aria-hidden="true">
+                <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/>
+                <path d="M11 13l9 -9"/>
+                <path d="M15 4h5v5"/>
+            </svg>
+            <span class="visually-hidden">{{ 'common.opens_in_new_tab'|trans }}</span>
+        </a>
+    </small>
+{% endmacro %}
+
+{#
+  Per-form switch that shows or hides every hint of the form at once (OPNsense "full help").
+  Place it once, directly after form_start. The choice is remembered in a cookie.
+#}
+{% macro help_switch() %}
+    {# text-nowrap: without it the label breaks mid-word inside the flex row. #}
+    <div class="d-flex justify-content-end mb-3">
+        <label class="form-check form-switch mb-0 text-nowrap"
+               title="{{ 'common.form_help.show_all_hint'|trans }}">
+            <input class="form-check-input" type="checkbox"
+                   data-form-help-target="switch"
+                   data-action="form-help#toggleAll">
+            <span class="form-check-label text-secondary small">{{ 'common.form_help.show_all'|trans }}</span>
+        </label>
+    </div>
+{% endmacro %}
+
+{#
+  Error block of one field. Renders nothing while the field is valid.
+  The id `<id>_errors` is what the form theme (form/a11y_layout.html.twig) puts into the
+  widget's aria-describedby, so the message is read out with the field (#206).
+
+  @param field              FormView     The field whose errors to show
+  @param translation_domain string|null  Translate the messages in this domain; null = already translated
+#}
+{% macro field_errors(field, translation_domain = null) %}
+    {% if not field.vars.valid %}
+        <div class="alert alert-danger alert-sm mt-2 py-2" id="{{ field.vars.id }}_errors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon alert-icon me-1" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/>
+                <path d="M12 8v4"/>
+                <path d="M12 16h.01"/>
+            </svg>
+            {% for error in field.vars.errors %}{{ translation_domain ? error.message|trans({}, translation_domain) : error.message }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+        </div>
+    {% endif %}
+{% endmacro %}

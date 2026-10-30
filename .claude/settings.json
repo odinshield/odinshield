@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "superpowers-symfony": {
+      "source": {
+        "source": "github",
+        "repo": "MakFly/superpowers-symfony"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "superpowers-symfony@superpowers-symfony": true
+  }
+}

@@ -1,0 +1,38 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+    Single labeled detail row.
+
+    Variables (required):
+      label       – translation key for the row label
+
+    Variables (one of):
+      value       – plain-text value; null renders '—'
+      value_html  – pre-rendered HTML (badges etc.); output unescaped
+
+    Variables (optional):
+      label_cols  – Bootstrap col class for label  (default: 'col-4')
+      value_cols  – Bootstrap col class for value  (default: 'col')
+
+    SECURITY (SEC-002): value_html is output with |raw — Twig auto-escaping is bypassed.
+    The caller MUST ensure that every piece of user-controlled data embedded in value_html
+    is explicitly escaped (e.g. {{ someVar|e }}) or passed only through safe Twig expressions
+    (enum method calls, path(), url(), hardcoded strings).
+    NEVER place a raw entity string field (user input) directly into value_html without escaping.
+#}
+{% set label_cols = label_cols ?? 'col-4' %}
+{% set value_cols = value_cols ?? 'col' %}
+
+<div class="detail-row row">
+    <label class="{{ label_cols }} col-form-label text-secondary">{{ label|trans }}</label>
+    <div class="{{ value_cols }}{% if value_html is defined %} pt-2{% endif %}">
+        {% if value_html is defined %}
+            {{ value_html|raw }}
+        {% else %}
+            {# #189: text-pre-line keeps the line breaks of multi-line values; the value stays escaped. #}
+            <span class="form-control-plaintext text-pre-line text-break">{{ value ?? '—' }}</span>
+        {% endif %}
+    </div>
+</div>

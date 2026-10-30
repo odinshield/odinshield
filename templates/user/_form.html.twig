@@ -1,0 +1,259 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import help_toggle, help_text, help_switch, field_errors %}
+<div class="card-body">
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'form-help'}}) }}
+{{ help_switch() }}
+{{ form_widget(form.lockVersion) }}
+
+
+{# #187: form-level errors (self-lockout guard) have no field to sit on. #}
+{% if form.vars.errors|length > 0 %}
+    <div class="alert alert-danger" role="alert">
+        {% for error in form.vars.errors %}
+            <div>{{ error.message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if conflict ?? false %}
+    {% include '_include/_optimistic_lock_banner.html.twig' with {
+        last_editor: lastEditor ?? null,
+        last_edited_at: lastEditedAt ?? null,
+        audit_url: path('app_user_show', {uuid: user.uuid}) ~ '#tab-user-history',
+    } only %}
+{% endif %}
+
+<div class="row">
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.username.vars.id }}">
+            {{ form.username.vars.label|trans }}
+            {% if form.username.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.username, {'attr': {'class': 'form-control' ~ (not form.username.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.username) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.email.vars.id }}">
+            {{ form.email.vars.label|trans }}
+            {% if form.email.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        <div class="input-group">
+            {{ form_widget(form.email, {'attr': {'class': 'form-control' ~ (not form.email.vars.valid ? ' is-invalid')}}) }}
+            <span class="input-group-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" class="icon">
+                    <path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z"/>
+                    <path d="M3 7l9 6l9 -6"/>
+                </svg>
+            </span>
+        </div>
+        {{ field_errors(form.email) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.firstName.vars.id }}">
+            {{ form.firstName.vars.label|trans }}
+            {% if form.firstName.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.firstName, {'attr': {'class': 'form-control' ~ (not form.firstName.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.firstName) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.lastName.vars.id }}">
+            {{ form.lastName.vars.label|trans }}
+            {% if form.lastName.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.lastName, {'attr': {'class': 'form-control' ~ (not form.lastName.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.lastName) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.locale.vars.id }}">
+            {{ form.locale.vars.label|trans }}
+            {% if form.locale.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.locale, {'attr': {'class': 'form-select' ~ (not form.locale.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.locale) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.theme.vars.id }}">
+            {{ form.theme.vars.label|trans }}
+        </label>
+        {{ form_widget(form.theme, {'attr': {'class': 'form-select' ~ (not form.theme.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.theme) }}
+    </div>
+    <div class="col-12 mb-3 d-flex align-items-end">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.emailNotifications, {'attr': {'class': 'form-check-input mt-0'}}) }}
+            <label class="form-check-label" for="{{ form.emailNotifications.vars.id }}">
+                {{ form.emailNotifications.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.emailNotifications) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.plainPassword.first.vars.id }}">
+            {{ form.plainPassword.first.vars.label|trans }}
+            {{ help_toggle(form.plainPassword.first.vars.id, form.plainPassword.first.vars.help) }}
+            {% if form.plainPassword.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        <div class="input-group" data-controller="password-toggle"
+             data-password-toggle-show-label-value="{{ 'security.login.show_password'|trans }}"
+             data-password-toggle-hide-label-value="{{ 'security.login.hide_password'|trans }}">
+            {{ form_widget(form.plainPassword.first, {'attr': {'class': 'form-control' ~ (not form.plainPassword.first.vars.valid ? ' is-invalid'), 'data-password-toggle-target': 'input'}}) }}
+            <span class="input-group-text">
+                <button type="button" class="link-secondary p-0 border-0 bg-transparent lh-1"
+                        data-password-toggle-target="button"
+                        data-action="password-toggle#toggle"
+                        aria-label="{{ 'security.login.show_password'|trans }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon" data-password-toggle-target="iconShow">
+                        <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
+                        <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon d-none" data-password-toggle-target="iconHide">
+                        <path d="M3 3l18 18"/>
+                        <path d="M10.584 10.587a2 2 0 0 0 2.828 2.83"/>
+                        <path d="M9.363 5.365a9 9 0 0 1 2.637-.365c3.6 0 6.6 2 9 6c-.822 1.37 -1.728 2.519 -2.706 3.438"/>
+                        <path d="M6.354 6.36c-2.166 1.407 -4.04 3.597 -5.354 6.14c2.4 4 5.4 6 9 6c1.737 0 3.37-.502 4.846-1.399"/>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        {{ help_text(form.plainPassword.first.vars.id, form.plainPassword.first.vars.help, 'mt-1', form.plainPassword.first.vars.help_translation_parameters) }}
+        {{ field_errors(form.plainPassword.first) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.plainPassword.second.vars.id }}">
+            {{ form.plainPassword.second.vars.label|trans }}
+            {% if form.plainPassword.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        <div class="input-group" data-controller="password-toggle"
+             data-password-toggle-show-label-value="{{ 'security.login.show_password'|trans }}"
+             data-password-toggle-hide-label-value="{{ 'security.login.hide_password'|trans }}">
+            {{ form_widget(form.plainPassword.second, {'attr': {'class': 'form-control' ~ (not form.plainPassword.second.vars.valid ? ' is-invalid'), 'data-password-toggle-target': 'input'}}) }}
+            <span class="input-group-text">
+                <button type="button" class="link-secondary p-0 border-0 bg-transparent lh-1"
+                        data-password-toggle-target="button"
+                        data-action="password-toggle#toggle"
+                        aria-label="{{ 'security.login.show_password'|trans }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon" data-password-toggle-target="iconShow">
+                        <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/>
+                        <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/>
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon d-none" data-password-toggle-target="iconHide">
+                        <path d="M3 3l18 18"/>
+                        <path d="M10.584 10.587a2 2 0 0 0 2.828 2.83"/>
+                        <path d="M9.363 5.365a9 9 0 0 1 2.637-.365c3.6 0 6.6 2 9 6c-.822 1.37 -1.728 2.519 -2.706 3.438"/>
+                        <path d="M6.354 6.36c-2.166 1.407 -4.04 3.597 -5.354 6.14c2.4 4 5.4 6 9 6c1.737 0 3.37-.502 4.846-1.399"/>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        {{ field_errors(form.plainPassword.second) }}
+    </div>
+    {% if form.plainPassword.vars.errors|length > 0 %}
+        <div class="col-12 mb-3">
+            <div class="alert alert-danger alert-sm mt-2 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" class="icon alert-icon me-1">
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/>
+                    <path d="M12 8v4"/>
+                    <path d="M12 16h.01"/>
+                </svg>
+                {% for error in form.plainPassword.vars.errors %}{{ error.message }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.roles.vars.id }}">
+            {{ form.roles.vars.label|trans }}
+            {% if form.roles.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            {{ help_toggle(form.roles.vars.id, form.roles.vars.help) }}
+        </label>
+        {{ form_widget(form.roles, {'attr': {'class': 'form-select', 'data-controller': 'tom-select', 'data-placeholder': 'user.field.roles_placeholder'|trans}}) }}
+        {{ help_text(form.roles.vars.id, form.roles.vars.help, 'mt-1') }}
+        {{ field_errors(form.roles) }}
+    </div>
+    {# #215: the warning belongs to the switch it is about, above Save — not below the card.
+       Edit only: the counts are passed by UserController::edit, the new form has none. Deliberately
+       NOT gated on user.isActive: after a failed POST the entity already carries the unticked switch,
+       and the warning would vanish exactly then. The controller zeroes the counts unless the user was
+       active when the request started ($wasActive) — so after an optimistic-lock conflict with another
+       admin's deactivation the warning still shows; harmless, the responsibilities are still there.
+       No role="alert": it is static content, read with the switch through aria-describedby. #}
+    {% set show_responsibility_warning = (software_count ?? 0) > 0 or (asset_group_count ?? 0) > 0 or (vulnerability_count ?? 0) > 0 %}
+    {% if show_responsibility_warning %}
+    <div class="col-12">
+        <div class="alert alert-warning" id="active_responsibilities_warning">
+            <div class="d-flex">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon alert-icon">
+                        <path d="M10.29 3.86l-8.29 14.14a2 2 0 0 0 1.71 3h16.58a2 2 0 0 0 1.71-3l-8.29-14.14a2 2 0 0 0 -3.42 0z"/>
+                        <path d="M12 9v4"/>
+                        <path d="M12 17h.01"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="alert-title">{{ 'user.active_responsibilities.title'|trans }}</h4>
+                    <div class="text-secondary">
+                        <ul class="mb-0">
+                            {% if (software_count ?? 0) > 0 %}
+                                <li>{{ 'user.active_responsibilities.software'|trans({'%count%': software_count}) }}</li>
+                            {% endif %}
+                            {% if (asset_group_count ?? 0) > 0 %}
+                                <li>{{ 'user.active_responsibilities.asset_group'|trans({'%count%': asset_group_count}) }}</li>
+                            {% endif %}
+                            {% if (vulnerability_count ?? 0) > 0 %}
+                                <li>{{ 'user.active_responsibilities.vulnerability'|trans({'%count%': vulnerability_count}) }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="col-12 mb-3 d-flex align-items-end">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input mt-0'}|merge(show_responsibility_warning ? {'aria-describedby': 'active_responsibilities_warning'} : {})}) }}
+            <label class="form-check-label" for="{{ form.isActive.vars.id }}">
+                {{ form.isActive.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.isActive) }}
+    </div>
+    <div class="col-12 mb-3 d-flex align-items-end">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.mustChangePassword, {'attr': {'class': 'form-check-input mt-0'}}) }}
+            <label class="form-check-label" for="{{ form.mustChangePassword.vars.id }}">
+                {{ form.mustChangePassword.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.mustChangePassword) }}
+    </div>
+</div>
+
+<div class="form-footer d-flex justify-content-between">
+    <a href="{{ (return_to_show ?? false) ? path('app_user_show', {'uuid': user.uuid}|merge(return_params ?? {})) : path('app_user_index', return_params ?? {}) }}" class="btn btn-outline-secondary">
+        {{ 'common.cancel'|trans }}
+    </a>
+    <button type="submit" class="btn btn-primary" data-controller="form-submit">
+        {{ (button_label ?? 'user.save')|trans }}
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>

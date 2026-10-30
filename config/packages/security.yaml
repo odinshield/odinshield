@@ -1,0 +1,96 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+security:
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    providers:
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                # SEC-018 (#140): no `property:` on purpose — that would make Doctrine compare the
+                # username byte-wise. UserRepository implements UserLoaderInterface and resolves
+                # the identifier case-insensitively instead.
+
+    firewalls:
+        dev:
+            # Ensure dev tools and static assets are always allowed
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        main:
+            lazy: true
+            provider: app_user_provider
+            user_checker: App\Security\UserChecker
+            # SEC-014: return 401 on Turbo/fetch requests (frontend hard-redirects) instead of
+            # injecting the login page into a frame/modal when the session expires.
+            entry_point: App\Security\TurboAwareAuthenticationEntryPoint
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                enable_csrf: true
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 2592000 # 30 days in seconds
+                always_remember_me: false
+                token_provider:
+                    doctrine: true
+                # SEC-008: Harden cookie transport and access.
+                # secure: true — never send over plain HTTP (even if TLS terminates upstream).
+                # httponly: true — JS cannot read the token (Symfony default but stated explicitly).
+                # samesite: lax — blocks cross-site POST forgery while allowing top-level GET navigation.
+                secure: true
+                httponly: true
+                samesite: lax
+            # SEC-020 (#195): logout is POST-only (route `methods`) and CSRF-protected. A GET link was
+            # prefetched by Turbo on hover and logged the user out; any foreign page could do the same
+            # with <img src=".../logout">. GET /logout now never reaches the logout listener (405).
+            logout:
+                path: app_logout
+                target: app_login
+                enable_csrf: true
+
+            # Activate different ways to authenticate:
+            # https://symfony.com/doc/current/security.html#the-firewall
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # SEC-013: role_hierarchy is intentionally absent.
+    # All application roles are orthogonal — none inherits from another.
+    # ROLE_ADMIN, ROLE_SOFTWARE_OWNER, ROLE_HARDWARE_OWNER, ROLE_ISB are parallel functional roles.
+    # ROLE_USER is appended automatically by User::getRoles() — never stored, never offered in role forms.
+    # Do NOT add a role_hierarchy without a deliberate separation-of-duties review.
+    # Orthogonal means no *inherited* rights, not separation of duties: ROLE_ADMIN is deliberately
+    # all-powerful (#196, decided 2026-09-17). An admin can grant any role to any account, their own
+    # included (e.g. ROLE_ISB to close/delete), and /audit + its CSV export show the audited content of
+    # every vulnerability without the access filter. The control is the audit trail (`roles` is audited),
+    # not a technical barrier — do not "fix" this without reopening that decision.
+
+    # Note: Only the *first* matching rule is applied
+    access_control:
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        # SEC-016 (audit M7): remember-me is honoured for everyday browsing. Sensitive actions
+        # (password change, settings, user/user-group management, audit trail + CSV export,
+        # vulnerability delete/bulk-close) keep a controller-level IS_AUTHENTICATED_FULLY gate that
+        # forces a fresh re-login even when a remember-me cookie is present. Everyday controllers
+        # carry IS_AUTHENTICATED_REMEMBERED instead (#186); tests/Functional/Security/RememberMeAccessTest.
+        - { path: ^/, roles: IS_AUTHENTICATED_REMEMBERED }
+
+when@test:
+    security:
+        password_hashers:
+            # Password hashers are resource-intensive by design to ensure security.
+            # In tests, it's safe to reduce their cost to improve performance.
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Lowest possible value for bcrypt
+                time_cost: 3 # Lowest possible value for argon
+                memory_cost: 10 # Lowest possible value for argon

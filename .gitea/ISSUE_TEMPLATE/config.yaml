@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+blank_issues_enabled: true
+contact_links:
+  - name: Sicherheitslücke (vertraulich)
+    url: mailto:security@odinshield.net
+    about: Sicherheitsrelevante Funde bitte vertraulich per E-Mail melden, NICHT als öffentliches Issue.

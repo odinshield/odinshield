@@ -1,0 +1,378 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'legal.title'|trans }} - OdinShield{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h1 class="page-title">{{ 'legal.title'|trans }}</h1>
+                <div class="text-secondary mt-1">{{ 'legal.subtitle'|trans }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+
+    {# OdinShield License #}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'license.odinshield.title'|trans }}</h3>
+                <div class="card-options">
+                    <span class="badge bg-green-lt">GNU AGPL v3</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary">{{ 'license.odinshield.preamble'|trans }}</p>
+                <hr>
+                <pre class="text-secondary" style="white-space: pre-wrap; font-size: 0.8rem; line-height: 1.6; max-height: 400px; overflow-y: auto;">OdinShield - Vulnerability Management System
+Copyright (C) 2026  André Gommlich, www.odinshield.net
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;.
+
+---
+
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2007 Free Software Foundation, Inc. &lt;https://fsf.org/&gt;
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+TERMS AND CONDITIONS
+
+0. Definitions.
+
+"This License" refers to version 3 of the GNU Affero General Public License.
+
+"The Program" refers to any copyrightable work licensed under this
+License. Each licensee is addressed as "you". "Licensees" and
+"recipients" may be individuals or organizations.
+
+1. Source Code.
+
+The "source code" for a work means the preferred form of the work for
+making modifications to it. "Object code" means any non-source form
+of a work.
+
+2. Basic Permissions.
+
+All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met. This License explicitly affirms your unlimited
+permission to run the unmodified Program. The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.
+
+3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such measures.
+
+4. Conveying Verbatim Copies.
+
+You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice and
+disclaimer of warranty.
+
+5. Conveying Modified Source Versions.
+
+You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+a) The work must carry prominent notices stating that you modified it.
+b) The work must carry prominent notices stating it is released under
+   this License and any conditions added under section 7.
+c) You must license the entire work, as a whole, under this License to
+   anyone who comes into possession of a copy.
+
+6. Conveying Non-Source Forms.
+
+You may convey a covered work in object code form under the terms of
+sections 4 and 5, provided that you also convey the machine-readable
+Corresponding Source under the terms of this License.
+
+13. Remote Network Interaction.
+
+Notwithstanding any other provision of this License, if you modify the
+Program, your modified version must prominently offer all users
+interacting with it remotely through a computer network (if your version
+supports such interaction) an opportunity to receive the Corresponding
+Source of your version.
+
+NO WARRANTY
+
+15. DISCLAIMER OF WARRANTY.
+
+THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW. THE PROGRAM IS PROVIDED "AS IS" WITHOUT WARRANTY OF
+ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
+PROGRAM IS WITH YOU.
+
+16. LIMITATION OF LIABILITY.
+
+IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+THE USE OR INABILITY TO USE THE PROGRAM.
+
+For the full license text, see: https://www.gnu.org/licenses/agpl-3.0.html</pre>
+            </div>
+        </div>
+    </div>
+
+
+
+    {# Backend #}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'license.section.backend'|trans }}</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'license.table.package'|trans }}</th>
+                            <th>{{ 'license.table.license'|trans }}</th>
+                            <th>{{ 'license.table.description'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Auditor Bundle</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.auditor.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Doctrine Migrations</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.doctrine_migrations.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Doctrine ORM</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.doctrine_orm.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Monolog</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.monolog.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PHP</strong></td>
+                            <td>PHP License 3.01</td>
+                            <td>{{ 'license.php.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Symfony</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.symfony.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Twig</strong></td>
+                            <td>BSD 3-Clause</td>
+                            <td>{{ 'license.twig.description'|trans }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Frontend #}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'license.section.frontend'|trans }}</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'license.table.package'|trans }}</th>
+                            <th>{{ 'license.table.license'|trans }}</th>
+                            <th>{{ 'license.table.description'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Bootstrap</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.bootstrap.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Chart.js</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.chartjs.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>@kurkle/color</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.kurkle_color.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hotwire Turbo</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.turbo.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>idiomorph</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.idiomorph.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Inter Font</strong></td>
+                            <td>OFL-1.1</td>
+                            <td>{{ 'license.inter.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Litepicker</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.litepicker.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Stimulus</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.stimulus.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tabler</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.tabler.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tabler Icons</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.tabler_icons.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>@orchidjs/sifter, @orchidjs/unicode-variants</strong></td>
+                            <td>Apache 2.0</td>
+                            <td>{{ 'license.orchidjs.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tom Select</strong></td>
+                            <td>Apache 2.0</td>
+                            <td>{{ 'license.tom_select.description'|trans }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Infrastructure #}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'license.section.infrastructure'|trans }}</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-vcenter card-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'license.table.package'|trans }}</th>
+                            <th>{{ 'license.table.license'|trans }}</th>
+                            <th>{{ 'license.table.description'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Docker</strong></td>
+                            <td>Apache 2.0</td>
+                            <td>{{ 'license.docker.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>FrankenPHP</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.frankenphp.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>frankenphp-hot-reload</strong></td>
+                            <td>MIT</td>
+                            <td>{{ 'license.frankenphp_hot_reload.description'|trans }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PostgreSQL</strong></td>
+                            <td>PostgreSQL License</td>
+                            <td>{{ 'license.postgresql.description'|trans }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# SBOM — only for those who may download it. A link that ends in a 403 for most users is
+       a defect, not a feature (#83); the gate here mirrors SEC-019 on the route itself. #}
+    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_ISB') %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'legal.sbom.title'|trans }}</h3>
+                {# No bg-*-lt badge: measured 4.36:1 light and 2.69:1 dark, both below WCAG AA —
+                   the family #124 is about. text-secondary carries both themes. #}
+                <div class="card-options">
+                    <span class="text-secondary small">CycloneDX 1.6</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-secondary">{{ 'legal.sbom.description'|trans }}</p>
+                {# #217: a file download, not a page — Turbo would fetch it as a visit (same as
+                   the audit CSV export). Without a built SBOM a hint replaces the link. #}
+                {% if sbom_available %}
+                <a href="{{ path('app_sbom') }}" class="btn btn-primary" data-turbo="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon" aria-hidden="true">
+                        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/>
+                        <path d="M7 11l5 5l5 -5"/>
+                        <path d="M12 4l0 12"/>
+                    </svg>
+                    {{ 'legal.sbom.download'|trans }}
+                </a>
+                {% else %}
+                <p class="mb-0 d-flex gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon flex-shrink-0" aria-hidden="true">
+                        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/>
+                        <path d="M12 9h.01"/>
+                        <path d="M11 12h1v4h1"/>
+                    </svg>
+                    <span>{{ 'legal.sbom.unavailable'|trans }}</span>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

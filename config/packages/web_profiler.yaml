@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+when@dev:
+    web_profiler:
+        toolbar: true
+
+    framework:
+        profiler: true
+
+when@test:
+    framework:
+        profiler:
+            collect: false

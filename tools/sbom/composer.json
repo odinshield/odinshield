@@ -1,0 +1,15 @@
+{
+    "name": "odinshield/sbom-tool",
+    "description": "Throwaway project that generates the image SBOM (#82) — never a dependency of the app. Pinned with composer.lock (#198).",
+    "type": "project",
+    "license": "AGPL-3.0-or-later",
+    "require": {
+        "cyclonedx/cyclonedx-php-composer": "6.2.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "cyclonedx/cyclonedx-php-composer": true
+        },
+        "sort-packages": true
+    }
+}

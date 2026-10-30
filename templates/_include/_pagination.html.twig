@@ -1,0 +1,69 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{# @var route string  Route name passed to path() #}
+{# @var page int      Current page (1-based) #}
+{# @var pages int     Total number of pages #}
+{# @var from int      First displayed row index #}
+{# @var to int        Last displayed row index #}
+{# @var total int     Total row count #}
+{# @var query_params hash  Filter/sort state merged into every page link #}
+{% set query_params = query_params|default({}) %}
+{# Audit L15: an out-of-range page yields from > to (e.g. "41 to 20") — show a clean empty range. #}
+{% set _empty_range = from > to %}
+{% set from = _empty_range ? 0 : from %}
+{% set to = _empty_range ? 0 : to %}
+<div class="card-footer d-flex align-items-center justify-content-between">
+    <p class="m-0 text-secondary">
+        {{ 'common.showing_results'|trans({'%from%': from, '%to%': to, '%total%': total}) }}
+    </p>
+    {% if pages > 1 %}
+    <nav aria-label="{{ 'common.pagination.label'|trans }}">
+        <ul class="pagination m-0">
+            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ path(route, query_params|merge({'page': page - 1})) }}"
+                   aria-label="{{ 'common.pagination.previous'|trans }}"
+                   {% if page == 1 %}aria-disabled="true" tabindex="-1"{% endif %}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M15 6l-6 6l6 6"/>
+                    </svg>
+                </a>
+            </li>
+            {% set _pg_from = max(2, page - 2) %}
+            {% set _pg_to = min(pages - 1, page + 2) %}
+            <li class="page-item {% if page == 1 %}active{% endif %}">
+                <a class="page-link" href="{{ path(route, query_params|merge({'page': 1})) }}"
+                   {% if page == 1 %}aria-current="page"{% endif %}>1</a>
+            </li>
+            {% if _pg_from <= _pg_to %}
+                {% if _pg_from > 2 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+                {% for p in _pg_from.._pg_to %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ path(route, query_params|merge({'page': p})) }}"
+                           {% if p == page %}aria-current="page"{% endif %}>{{ p }}</a>
+                    </li>
+                {% endfor %}
+                {% if _pg_to < pages - 1 %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+            {% endif %}
+            <li class="page-item {% if page == pages %}active{% endif %}">
+                <a class="page-link" href="{{ path(route, query_params|merge({'page': pages})) }}"
+                   {% if page == pages %}aria-current="page"{% endif %}>{{ pages }}</a>
+            </li>
+            <li class="page-item {% if page == pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ path(route, query_params|merge({'page': page + 1})) }}"
+                   aria-label="{{ 'common.pagination.next'|trans }}"
+                   {% if page == pages %}aria-disabled="true" tabindex="-1"{% endif %}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M9 6l6 6l-6 6"/>
+                    </svg>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>

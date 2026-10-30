@@ -1,0 +1,75 @@
+{
+    "document": {
+        "csaf_version": "2.0",
+        "title": "OPNsense: Mehrere Schwachstellen",
+        "tracking": {
+            "id": "WID-SEC-W-2026-1475",
+            "version": "1",
+            "status": "final",
+            "initial_release_date": "2026-05-11T22:00:00.000+00:00",
+            "current_release_date": "2026-05-11T22:00:00.000+00:00"
+        },
+        "notes": [
+            {"category": "legal_disclaimer", "title": "Disclaimer", "text": "Boilerplate that must NOT be imported."},
+            {"category": "description", "title": "Produktbeschreibung", "text": "Synthetische Produktbeschreibung von OPNsense."},
+            {"category": "summary", "title": "Angriff", "text": "Synthetische Angriffsbeschreibung für OPNsense."}
+        ]
+    },
+    "product_tree": {
+        "branches": [
+            {
+                "category": "vendor",
+                "name": "Open Source",
+                "branches": [
+                    {
+                        "category": "product_name",
+                        "name": "OPNsense",
+                        "branches": [
+                            {
+                                "category": "product_version_range",
+                                "name": "<26.1.8",
+                                "product": {
+                                    "product_id": "T053846",
+                                    "name": "Open Source OPNsense <26.1.8"
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "26.1.8",
+                                "product": {
+                                    "product_id": "T053846-fixed",
+                                    "name": "Open Source OPNsense 26.1.8",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:/a:opnsense:opnsense:26.1.8"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "vulnerabilities": [
+        {
+            "cve": "CVE-2026-44194",
+            "title": "OPNsense RCE",
+            "notes": [
+                {"category": "description", "text": "Remote code execution as administrator."}
+            ],
+            "remediations": [
+                {"category": "vendor_fix", "details": "Update to 26.1.8."}
+            ],
+            "product_status": {
+                "known_affected": ["T053846"],
+                "fixed": ["T053846-fixed"]
+            },
+            "scores": [
+                {
+                    "cvss_v3_1": {"version": "3.1", "baseScore": 9.1, "baseSeverity": "CRITICAL"},
+                    "products": ["T053846"]
+                }
+            ]
+        }
+    ]
+}

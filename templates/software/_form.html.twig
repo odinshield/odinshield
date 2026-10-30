@@ -1,0 +1,7 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<div class="card-body">
+    {{ component('SoftwareForm', { initialFormData: software, returnParams: return_params ?? {}, buttonLabel: button_label ?? 'software.save', isNew: is_new ?? true, returnToShow: return_to_show ?? false }) }}
+</div>

@@ -1,0 +1,30 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+  Global form theme (#206). Symfony sets aria-describedby/aria-invalid only in form_row, but our
+  forms are hand-built from form_widget() calls — so the widget itself links its hint and errors.
+
+  The ids match what the templates render: `help_<id>` from the help_text macro, `<id>_errors`
+  from the field_errors macro (both in _include/_form_macros.html.twig).
+#}
+{% use 'form_div_layout.html.twig' %}
+
+{%- block widget_attributes -%}
+    {%- set aria_describedby = attr['aria-describedby'] is defined ? [attr['aria-describedby']] : [] -%}
+    {%- if help -%}
+        {%- set aria_describedby = aria_describedby|merge(['help_' ~ id]) -%}
+    {%- endif -%}
+    {%- if errors|length > 0 -%}
+        {%- set aria_describedby = aria_describedby|merge([id ~ '_errors']) -%}
+        {%- set attr = attr|merge({'aria-invalid': 'true'}) -%}
+    {%- endif -%}
+    {%- if aria_describedby|length > 0 -%}
+        {%- set attr = attr|merge({'aria-describedby': aria_describedby|join(' ')}) -%}
+    {%- endif -%}
+    id="{{ id }}" name="{{ full_name }}"
+    {%- if disabled %} disabled="disabled"{% endif -%}
+    {%- if required %} required="required"{% endif -%}
+    {{ block('attributes') }}
+{%- endblock widget_attributes -%}

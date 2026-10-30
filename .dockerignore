@@ -1,0 +1,104 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+**/*.log
+**/*.md
+**/*.php~
+**/*.dist.php
+**/*.dist
+**/*.cache
+**/._*
+**/.dockerignore
+**/.DS_Store
+**/.git/
+**/.gitattributes
+**/.gitignore
+**/.gitmodules
+**/compose.*.yaml
+**/compose.*.yml
+**/compose.yaml
+**/compose.yml
+**/docker-compose.*.yaml
+**/docker-compose.*.yml
+**/docker-compose.yaml
+**/docker-compose.yml
+**/Dockerfile
+**/Thumbs.db
+.github/
+.idea/
+docs/
+!docs/manual/
+!docs/manual/**
+public/bundles/
+tests/
+var/
+vendor/
+.editorconfig
+
+# ── Credential files — never bake secrets into the image ─────────────────────
+# Root-level .env files (legacy docker/staging configs with real credentials).
+.env
+.env.*
+# Deployment example contains generated secrets.
+.env.deploy.example
+# Dev/test env fragments not needed in production.
+environment/.env.dev
+environment/.env.test.bak
+environment/.env.*.local
+environment/.env.local
+environment/.env.local.php
+environment/.env.test
+
+# ── Dev/build tooling — not needed at runtime ────────────────────────────────
+Makefile
+docker/
+php-cs-fixer.php
+**/*.bak
+
+# ── Saved email files (error notifications, ad-hoc dumps) ────────────────────
+# Mails saved to the repo root for analysis contain headers, IP addresses,
+# and stack traces. Must never land in the build context.
+**/*.eml
+**/*.eml:OECustomProperty
+
+# ── AI / developer tooling ────────────────────────────────────────────────────
+.claude/
+mate/
+.mcp.json
+mcp.json
+skills-lock.json
+CLAUDE.md
+AGENTS.md
+PLAN.md
+PROGRESS.md
+phpstan.dist.neon
+phpunit.dist.xml
+.php-cs-fixer.dist.php
+.php-cs-fixer.cache
+.phpunit.cache/
+
+# ── Local TLS / CA artifacts ─────────────────────────────────────────────────
+# .gitignore already keeps these out of the repository (lines 54-58), but
+# .dockerignore is independent: an untracked file still enters the build
+# context. `caddy-root.crt` — the dev Caddy root CA — reached every released
+# image this way. Pattern, not a single filename: any stray cert a developer
+# has lying around would otherwise be baked in.
+**/*.crt
+**/*.pem
+**/*.key
+
+# ── Forge, hooks and release tooling — never needed at runtime ───────────────
+.gitea/
+.githooks/
+deploy/
+tools/
+# #198: the SBOM generator's pinned throwaway project is needed in the builder (excluded from
+# the final image by `--exclude=tools` in the Dockerfile).
+!tools/sbom/
+!tools/sbom/**
+biome.json
+
+# A local sbom.json must never reach the build context — the builder writes its own
+# from the state it just installed, and a stale copy would describe a different artefact.
+/sbom.json

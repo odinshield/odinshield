@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# yaml-language-server: $schema=vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# SEC-015: POSTGRES_PASSWORD falls back to "!ChangeMe!" if the environment variable is not set.
+# Before starting the stack, set POSTGRES_PASSWORD to a strong random value in your shell or a .env file
+# that is NOT committed to version control (e.g. environment/.env.local).
+# Example: POSTGRES_PASSWORD=$(openssl rand -base64 32)
+
+services:
+  php:
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - name: http
+        target: 80
+        published: ${HTTP_PORT:-80}
+        protocol: tcp
+      - name: https
+        target: 443
+        published: ${HTTPS_PORT:-443}
+        protocol: tcp
+      - name: http3
+        target: 443
+        published: ${HTTP3_PORT:-443}
+        protocol: udp
+
+  worker:
+    restart: unless-stopped
+    # `scheduler_default` + `scheduler_csaf` + `scheduler_exploitation` are the virtual transports
+    # Symfony Scheduler writes its cron-ticks to (one per ScheduleProvider). Without them in
+    # the consume list, no RecurringMessage fires — the schedule shows up in debug:scheduler
+    # but never advances. See `src/Schedule.php` + `src/Scheduler/CsafImportSchedule.php` +
+    # `src/Scheduler/ExploitationEnrichmentSchedule.php`.
+    command: ["php", "bin/console", "messenger:consume", "async", "scheduler_default", "scheduler_csaf", "scheduler_exploitation", "--time-limit=3600", "--memory-limit=128M", "-vv"]
+    environment:
+      TZ: ${TZ:-UTC}
+      SKIP_MIGRATIONS: "1"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+    # The Dockerfile HEALTHCHECK probes FrankenPHP's admin API (port 2019), which the
+    # worker never starts. Disable it — the worker exits hourly by design (--time-limit)
+    # and Docker's restart policy handles recovery.
+    healthcheck:
+      disable: true
+    depends_on:
+      database:
+        condition: service_healthy
+      php:
+        condition: service_healthy
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgres:${POSTGRES_VERSION:-18.4}-alpine
+    environment:
+      TZ: ${TZ:-UTC}
+      PGTZ: ${TZ:-UTC}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+  caddy_data:
+  caddy_config:
+  database_data:

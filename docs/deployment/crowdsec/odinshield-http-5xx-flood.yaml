@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# CrowdSec scenario: 5xx error storm from a single source IP
+#
+# Legitimate users virtually never trigger 5xx responses. Multiple 5xx
+# from the same IP within a short window indicates exploit probing —
+# malformed payloads, SQL injection attempts, type-juggling, deserialization
+# tricks, broken UUIDs etc. High signal, low false-positive rate.
+#
+# Calibration:
+#   - capacity: 5 / leakspeed: 30s → 5 errors per ~150 s triggers a ban.
+#   - If you do a deploy that briefly returns 5xx on legitimate traffic
+#     (e.g. cache:clear race), expect short-lived bans of monitoring IPs.
+#     Whitelist them in /etc/crowdsec/parsers/s02-enrich/whitelists.yaml.
+
+type: leaky
+name: odinshield/http-5xx-flood
+description: "Repeated 5xx responses from a single source — likely exploit probing"
+filter: |
+  evt.Meta.log_type == 'http_access-log' &&
+  evt.Parsed.status_code matches '^5'
+leakspeed: 30s
+capacity: 5
+groupby: evt.Meta.source_ip
+blackhole: 15m
+labels:
+  service: odinshield
+  type: exploit
+  remediation: true

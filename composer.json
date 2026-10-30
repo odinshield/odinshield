@@ -1,0 +1,147 @@
+{
+    "name": "odinshield/odinshield",
+    "description": "OdinShield - vulnerability management for asset groups",
+    "type": "project",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://www.odinshield.net",
+    "authors": [
+        {
+            "name": "m³ Gommlich",
+            "homepage": "https://www.odinshield.net"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/odinshield/odinshield/issues",
+        "source": "https://github.com/odinshield/odinshield",
+        "security": "https://github.com/odinshield/odinshield/security/policy"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.5",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "damienharper/auditor-bundle": "^7.2.1",
+        "doctrine/doctrine-bundle": "^3.3.2",
+        "doctrine/doctrine-migrations-bundle": "^4.0.1",
+        "doctrine/orm": "^3.7.1",
+        "dragonmantank/cron-expression": "^3.6",
+        "league/commonmark": "^2.10.3",
+        "phpdocumentor/reflection-docblock": "^5.6 || ^6.0.3",
+        "phpstan/phpdoc-parser": "^2.3.5",
+        "symfony/asset": "8.1.*",
+        "symfony/asset-mapper": "8.1.*",
+        "symfony/console": "8.1.*",
+        "symfony/doctrine-messenger": "8.1.*",
+        "symfony/dotenv": "8.1.*",
+        "symfony/expression-language": "8.1.*",
+        "symfony/flex": "^2.11",
+        "symfony/form": "8.1.*",
+        "symfony/framework-bundle": "8.1.*",
+        "symfony/http-client": "8.1.*",
+        "symfony/intl": "8.1.*",
+        "symfony/mailer": "8.1.*",
+        "symfony/mime": "8.1.*",
+        "symfony/monolog-bundle": "^3.0|^4.1.0",
+        "symfony/notifier": "8.1.*",
+        "symfony/process": "8.1.*",
+        "symfony/property-access": "8.1.*",
+        "symfony/property-info": "8.1.*",
+        "symfony/rate-limiter": "8.1.*",
+        "symfony/runtime": "8.1.*",
+        "symfony/scheduler": "8.1.*",
+        "symfony/security-bundle": "8.1.*",
+        "symfony/serializer": "8.1.*",
+        "symfony/stimulus-bundle": "^3.6",
+        "symfony/string": "8.1.*",
+        "symfony/translation": "8.1.*",
+        "symfony/twig-bundle": "8.1.*",
+        "symfony/uid": "8.1.*",
+        "symfony/ux-chartjs": "^3.6",
+        "symfony/ux-live-component": "^3.6",
+        "symfony/ux-turbo": "^3.6",
+        "symfony/validator": "8.1.*",
+        "symfony/web-link": "8.1.*",
+        "symfony/yaml": "8.1.*",
+        "twig/cssinliner-extra": "^3.26",
+        "twig/extra-bundle": "^3.29",
+        "twig/intl-extra": "^3.30",
+        "twig/markdown-extra": "^3.29",
+        "twig/twig": "^2.12|^3.30.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "audit": {
+            "ignore": {
+                "PKSA-wtxr-p26d-nn42": "CVE-2026-45070 (symfony/mime, MIME parameter names): not reachable, OdinShield sets no MIME parameters of its own and sends no attachments. Fixed in 8.1.10 (released 2026-10-28); update and drop this entry from 2026-11-11 (two-week rule)."
+            }
+        },
+        "bump-after-update": true,
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "replace": {
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php72": "*",
+        "symfony/polyfill-php73": "*",
+        "symfony/polyfill-php74": "*",
+        "symfony/polyfill-php80": "*",
+        "symfony/polyfill-php81": "*",
+        "symfony/polyfill-php82": "*",
+        "symfony/polyfill-php83": "*",
+        "symfony/polyfill-php84": "*"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd",
+            "importmap:install": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ]
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "8.1.*"
+        },
+        "runtime": {
+            "dotenv_path": "environment/.env"
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95.25",
+        "phpstan/extension-installer": "^1.4.3",
+        "phpstan/phpstan": "^2.2.14",
+        "phpstan/phpstan-doctrine": "^2.0.28",
+        "phpstan/phpstan-symfony": "^2.0.20",
+        "phpunit/phpunit": "^13.3.4",
+        "symfony/browser-kit": "8.1.*",
+        "symfony/css-selector": "8.1.*",
+        "symfony/debug-bundle": "8.1.*",
+        "symfony/maker-bundle": "^1.68",
+        "symfony/stopwatch": "8.1.*",
+        "symfony/web-profiler-bundle": "8.1.*"
+    }
+}

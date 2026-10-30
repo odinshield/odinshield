@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+framework:
+    notifier:
+        chatter_transports:
+        texter_transports:
+        channel_policy:
+            # use chat/slack, chat/telegram, sms/twilio or sms/nexmo
+            urgent: ['email']
+            high: ['email']
+            medium: ['email']
+            low: ['email']
+        admin_recipients:
+            - { email: admin@example.com }

@@ -1,0 +1,45 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+    "files": {
+        "includes": [
+            "assets/**/*.js",
+            "assets/**/*.css",
+            "!assets/vendor",
+            "!assets/controllers/csrf_protection_controller.js"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "complexity": {
+                "noImportantStyles": "off"
+            },
+            "suspicious": {
+                "noDocumentCookie": "off"
+            },
+            "style": {
+                "noDescendingSpecificity": "off"
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "single"
+        }
+    },
+    "css": {
+        "formatter": {
+            "enabled": true
+        },
+        "linter": {
+            "enabled": true
+        }
+    }
+}

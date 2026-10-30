@@ -1,0 +1,160 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+    <div class="container-fluid">
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#sidebar-menu"
+            aria-controls="sidebar-menu"
+            aria-expanded="false"
+            aria-label="{{ 'navigation.toggle'|trans }}"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-brand">
+            <a href="{{ path('app_dashboard') }}">
+                <img src="{{ asset('img/odinshield.webp') }}" alt="OdinShield" class="rounded" style="height: 64px; width: auto;">
+            </a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3">
+                <li class="nav-item {{ app.current_route starts with 'app_dashboard' ? 'active' }}">
+                    <a class="nav-link" href="{{ path('app_dashboard') }}">
+                        <span class="nav-link-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="icon">
+                                <path d="M5 12l-2 0l9 -9l9 9l-2 0"/>
+                                <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/>
+                                <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>
+                            </svg>
+                        </span>
+                        <span class="nav-link-title">{{ 'navigation.dashboard'|trans }}</span>
+                    </a>
+                </li>
+                {% if not is_granted('ROLE_ADMIN')
+                    or is_granted('ROLE_ISB')
+                    or is_granted('ROLE_HARDWARE_OWNER')
+                    or is_granted('ROLE_SOFTWARE_OWNER')
+                    or app_is_software_responsible()
+                    or app_is_asset_group_responsible() %}
+                <li class="nav-item {{ app.current_route starts with 'app_vulnerability' ? 'active' }}">
+                    <a class="nav-link" href="{{ path('app_vulnerability_index') }}">
+                        <span class="nav-link-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="icon">
+                                <path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06"/>
+                                <path d="M15 19l2 2l4 -4"/>
+                            </svg>
+                        </span>
+                        <span class="nav-link-title">{{ 'navigation.vulnerabilities'|trans }}</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if is_granted('ROLE_ISB') or is_granted('ROLE_HARDWARE_OWNER') or is_granted('ROLE_SOFTWARE_OWNER')
+                   or app_is_software_responsible() or app_is_asset_group_responsible() %}
+                {% set catalog_active = app.current_route starts with 'app_asset_type'
+                    or app.current_route starts with 'app_asset_group'
+                    or app.current_route starts with 'app_vendor'
+                    or app.current_route starts with 'app_software' %}
+                <li class="nav-item {{ catalog_active ? 'active' }}">
+                    <a class="nav-link {{ catalog_active ? '' : 'collapsed' }}" href="#sidebar-catalog" data-bs-toggle="collapse">
+                        <span class="nav-link-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="icon">
+                                <path d="M3 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/>
+                                <path d="M3 13m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/>
+                                <path d="M13 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/>
+                                <path d="M13 13m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"/>
+                            </svg>
+                        </span>
+                        <span class="nav-link-title">{{ 'navigation.catalog'|trans }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon nav-link-chevron ms-auto">
+                            <path d="M9 6l6 6l-6 6"/>
+                        </svg>
+                    </a>
+                    <div class="collapse {{ catalog_active ? 'show' }}" id="sidebar-catalog">
+                        <div class="dropdown-menu show">
+                            {% if is_granted('ASSET_GROUP_VIEW') or app_is_asset_group_responsible() %}
+                                <a class="dropdown-item {{ app.current_route starts with 'app_asset_group' ? 'active' }}"
+                                   href="{{ path('app_asset_group_index') }}">
+                                    {{ 'navigation.asset_group_management'|trans }}
+                                </a>
+                            {% endif %}
+                            {% if is_granted('ROLE_ISB') or is_granted('ROLE_SOFTWARE_OWNER') or app_is_software_responsible() %}
+                                <a class="dropdown-item {{ app.current_route starts with 'app_software' ? 'active' }}"
+                                   href="{{ path('app_software_index') }}">
+                                    {{ 'navigation.software_management'|trans }}
+                                </a>
+                            {% endif %}
+                            {% if is_granted('ROLE_ISB') or is_granted('ROLE_SOFTWARE_OWNER') %}
+                                <a class="dropdown-item {{ app.current_route starts with 'app_vendor' ? 'active' }}"
+                                   href="{{ path('app_vendor_index') }}">
+                                    {{ 'navigation.vendor_management'|trans }}
+                                </a>
+                            {% endif %}
+                            {% if is_granted('ROLE_ISB') or is_granted('ROLE_HARDWARE_OWNER') %}
+                                <a class="dropdown-item {{ app.current_route starts with 'app_asset_type' ? 'active' }}"
+                                   href="{{ path('app_asset_type_index') }}">
+                                    {{ 'navigation.asset_type_management'|trans }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
+                {% set system_active = app.current_route starts with 'app_user' or app.current_route starts with 'app_audit' or app.current_route starts with 'app_import_status' %}
+                <li class="nav-item {{ system_active ? 'active' }}">
+                    <a class="nav-link {{ system_active ? '' : 'collapsed' }}" href="#sidebar-system" data-bs-toggle="collapse">
+                        <span class="nav-link-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="icon">
+                                <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/>
+                                <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
+                            </svg>
+                        </span>
+                        <span class="nav-link-title">{{ 'navigation.system'|trans }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon nav-link-chevron ms-auto">
+                            <path d="M9 6l6 6l-6 6"/>
+                        </svg>
+                    </a>
+                    <div class="collapse {{ system_active ? 'show' }}" id="sidebar-system">
+                        <div class="dropdown-menu show">
+                            <a class="dropdown-item {{ app.current_route starts with 'app_user' and not (app.current_route starts with 'app_user_group') ? 'active' }}"
+                               href="{{ path('app_user_index') }}">
+                                {{ 'navigation.user_management'|trans }}
+                            </a>
+                            <a class="dropdown-item {{ app.current_route starts with 'app_user_group' ? 'active' }}"
+                               href="{{ path('app_user_group_index') }}">
+                                {{ 'navigation.user_group_management'|trans }}
+                            </a>
+                            <a class="dropdown-item {{ app.current_route starts with 'app_audit' ? 'active' }}"
+                               href="{{ path('app_audit_index') }}">
+                                {{ 'navigation.audit_timeline'|trans }}
+                            </a>
+                            <a class="dropdown-item {{ app.current_route starts with 'app_import_status' ? 'active' }}"
+                               href="{{ path('app_import_status') }}">
+                                {{ 'navigation.import_status'|trans }}
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</aside>

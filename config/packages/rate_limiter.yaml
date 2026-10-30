@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# SEC-006: Per-user rate limits on sensitive authenticated actions.
+# `login_throttling` in security.yaml already caps anonymous login attempts;
+# these limiters cap authenticated flows so a single account cannot flood
+# password change / forced rotation / destructive admin actions.
+framework:
+    rate_limiter:
+        # Password change & forced rotation. 5 attempts/hour matches the
+        # /login throttle so brute-forcing the current-password re-check
+        # cannot bypass the login limiter. Sliding window so retries don't
+        # bunch at the boundary.
+        password_change_limiter:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 hour'
+
+        # Authenticated delete actions (vulnerability, user group). 20/hour
+        # is well above any legitimate workflow but caps runaway scripts /
+        # accidental loops in admin UIs.
+        delete_action_limiter:
+            policy: 'sliding_window'
+            limit: 20
+            interval: '1 hour'

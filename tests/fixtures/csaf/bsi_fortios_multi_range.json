@@ -1,0 +1,150 @@
+{
+  "document": {
+    "aggregate_severity": {
+      "text": "hoch"
+    },
+    "category": "csaf_base",
+    "csaf_version": "2.0",
+    "distribution": {
+      "tlp": {
+        "label": "WHITE",
+        "url": "https://www.first.org/tlp/"
+      }
+    },
+    "lang": "de-DE",
+    "notes": [
+      {
+        "category": "legal_disclaimer",
+        "text": "Synthetic legal disclaimer. Must not be imported."
+      },
+      {
+        "category": "description",
+        "text": "Synthetic description of a vulnerability in Fortinet FortiOS.",
+        "title": "Description"
+      },
+      {
+        "category": "summary",
+        "text": "Synthetic summary of a vulnerability in Fortinet FortiOS.",
+        "title": "Summary"
+      },
+      {
+        "category": "general",
+        "text": "Synthetic general note.",
+        "title": "General"
+      }
+    ],
+    "publisher": {
+      "category": "other",
+      "name": "OdinShield test suite (synthetic data)",
+      "namespace": "https://www.odinshield.net"
+    },
+    "source_lang": "en-US",
+    "title": "Fortinet FortiOS: synthetic test advisory",
+    "tracking": {
+      "current_release_date": "2026-05-12T22:00:00.000+00:00",
+      "generator": {
+        "engine": {
+          "name": "OdinShield test fixture"
+        }
+      },
+      "id": "WID-SEC-W-2026-1492",
+      "initial_release_date": "2026-05-12T22:00:00.000+00:00",
+      "revision_history": [
+        {
+          "date": "2026-05-12T22:00:00.000+00:00",
+          "number": "1",
+          "summary": "Revision 1"
+        }
+      ],
+      "status": "final",
+      "version": "1"
+    }
+  },
+  "product_tree": {
+    "branches": [
+      {
+        "branches": [
+          {
+            "branches": [
+              {
+                "category": "product_version_range",
+                "name": "<7.2.12",
+                "product": {
+                  "name": "Fortinet FortiOS <7.2.12",
+                  "product_id": "1813488"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "7.2.12",
+                "product": {
+                  "name": "Fortinet FortiOS 7.2.12",
+                  "product_id": "1813488-fixed",
+                  "product_identification_helper": {
+                    "cpe": "cpe:/o:fortinet:fortios:7.2.12"
+                  }
+                }
+              },
+              {
+                "category": "product_version_range",
+                "name": "<7.4.9",
+                "product": {
+                  "name": "Fortinet FortiOS <7.4.9",
+                  "product_id": "271C0661-D58E-4867-A88B-806E9E5A58C2"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "7.4.9",
+                "product": {
+                  "name": "Fortinet FortiOS 7.4.9",
+                  "product_id": "271C0661-D58E-4867-A88B-806E9E5A58C2-fixed",
+                  "product_identification_helper": {
+                    "cpe": "cpe:/o:fortinet:fortios:7.4.9"
+                  }
+                }
+              },
+              {
+                "category": "product_version_range",
+                "name": "<7.6.4",
+                "product": {
+                  "name": "Fortinet FortiOS <7.6.4",
+                  "product_id": "4A62EE9F-5F58-433A-AC07-1EC53B913EBB"
+                }
+              },
+              {
+                "category": "product_version",
+                "name": "7.6.4",
+                "product": {
+                  "name": "Fortinet FortiOS 7.6.4",
+                  "product_id": "4A62EE9F-5F58-433A-AC07-1EC53B913EBB-fixed",
+                  "product_identification_helper": {
+                    "cpe": "cpe:/o:fortinet:fortios:7.6.4"
+                  }
+                }
+              }
+            ],
+            "category": "product_name",
+            "name": "FortiOS"
+          }
+        ],
+        "category": "vendor",
+        "name": "Fortinet"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "cve": "CVE-2025-53844",
+      "product_status": {
+        "known_affected": [
+          "1813488",
+          "271C0661-D58E-4867-A88B-806E9E5A58C2",
+          "4A62EE9F-5F58-433A-AC07-1EC53B913EBB"
+        ]
+      },
+      "release_date": "2026-05-12T22:00:00.000+00:00",
+      "title": "Synthetic vulnerability 1"
+    }
+  ]
+}

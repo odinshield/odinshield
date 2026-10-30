@@ -1,0 +1,89 @@
+{
+    "document": {
+        "csaf_version": "2.0",
+        "title": "GStreamer: Mehrere Schwachstellen",
+        "tracking": {
+            "id": "WID-SEC-W-2026-1478",
+            "version": "1",
+            "status": "final",
+            "initial_release_date": "2026-05-11T22:00:00.000+00:00",
+            "current_release_date": "2026-05-11T22:00:00.000+00:00"
+        }
+    },
+    "product_tree": {
+        "branches": [
+            {
+                "category": "vendor",
+                "name": "Open Source",
+                "branches": [
+                    {
+                        "category": "product_name",
+                        "name": "GStreamer",
+                        "branches": [
+                            {
+                                "category": "product_version_range",
+                                "name": "core <1.28.3",
+                                "product": {
+                                    "product_id": "T053833",
+                                    "name": "Open Source GStreamer core <1.28.3"
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "core 1.28.3",
+                                "product": {
+                                    "product_id": "T053833-fixed",
+                                    "name": "Open Source GStreamer core 1.28.3",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:/a:open_source:gstreamer:1.28.3::core"
+                                    }
+                                }
+                            },
+                            {
+                                "category": "product_version_range",
+                                "name": "gst-plugins-bad <1.28.3",
+                                "product": {
+                                    "product_id": "T053834",
+                                    "name": "Open Source GStreamer gst-plugins-bad <1.28.3"
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "gst-plugins-bad 1.28.3",
+                                "product": {
+                                    "product_id": "T053834-fixed",
+                                    "name": "Open Source GStreamer gst-plugins-bad 1.28.3",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:/a:open_source:gstreamer:1.28.3::gst-plugins-bad"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "vulnerabilities": [
+        {
+            "cve": "CVE-2026-9999",
+            "title": "Buffer overflow",
+            "notes": [
+                {"category": "description", "text": "Heap buffer overflow in GStreamer."}
+            ],
+            "remediations": [
+                {"category": "vendor_fix", "details": "Update to 1.28.3 or later."}
+            ],
+            "product_status": {
+                "known_affected": ["T053833", "T053834"],
+                "fixed": ["T053833-fixed", "T053834-fixed"]
+            },
+            "scores": [
+                {
+                    "cvss_v3_1": {"version": "3.1", "baseScore": 7.5, "baseSeverity": "HIGH"},
+                    "products": ["T053833", "T053834"]
+                }
+            ]
+        }
+    ]
+}

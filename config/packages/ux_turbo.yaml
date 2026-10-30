@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Enable stateless CSRF protection for forms and logins/logouts
+framework:
+    csrf_protection:
+        check_header: true

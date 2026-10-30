@@ -1,0 +1,34 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<ul class="nav nav-tabs mb-3" data-bs-toggle="tabs">
+    <li class="nav-item">
+        <a href="#tab-asset-type-detail" class="nav-link active" data-bs-toggle="tab">{{ 'asset_type.section.details'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-asset-type-meta" class="nav-link" data-bs-toggle="tab">{{ 'asset_type.section.meta'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-asset-type-history" class="nav-link" data-bs-toggle="tab">{{ 'audit.tab.history'|trans }}</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active show" id="tab-asset-type-detail">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_type.field.name', value: asset_type.name } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_type.field.description', value: asset_type.description } %}
+
+    </div>
+    <div class="tab-pane" id="tab-asset-type-meta">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_at', value: asset_type.createdAt ? asset_type.createdAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_by', value: asset_type.createdBy } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_at', value: asset_type.updatedAt ? asset_type.updatedAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_by', value: asset_type.updatedBy } %}
+
+    </div>
+    <div class="tab-pane" id="tab-asset-type-history">
+        {% include '_include/_audit_timeline.html.twig' with { entity: asset_type, entity_slug: 'asset_type' } %}
+    </div>
+</div>

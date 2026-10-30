@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+parameters:
+    # #223: the instance checks once a day whether a newer OdinShield release exists. Source is a
+    # static version.json in the public snapshot repository, written by deploy/publish-snapshot.sh
+    # (decided 2026-10-30) — no forge API, so a field "security" can travel with it.
+    # The request is a plain GET: no instance id, no version, no cookie — not a telemetry channel.
+    app.update_check.url_default: 'https://raw.githubusercontent.com/odinshield/odinshield/main/version.json'
+    app.update_check.url: '%env(default:app.update_check.url_default:UPDATE_CHECK_URL)%'
+    # Off for installations without internet access. Read right to left like the other env
+    # parameters: an env var that is set but EMPTY falls back to the default (on).
+    app.update_check.enabled_default: true
+    app.update_check.enabled: '%env(bool:default:app.update_check.enabled_default:UPDATE_CHECK_ENABLED)%'
+    app.update_check.http_timeout_seconds: 10
+    # Once a day, UTC, on the default schedule (src/Schedule.php) — no transport of its own.
+    app.update_check.schedule_cron: '15 5 * * *'

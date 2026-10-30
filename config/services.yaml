@@ -1,0 +1,137 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+# See also https://symfony.com/doc/current/service_container/import.html
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    locale: 'de'
+    app_locales: 'de|en'
+    # Single source of truth: /VERSION file. Makefile, Dockerfile, environment/.env all
+    # mirror it. APP_VERSION env var (set in environment/.env for dev, from --build-arg
+    # for prod images) overrides the fallback below — supports staging suffixes such as
+    # APP_VERSION=2.0.0-rc.6+staging without re-bumping VERSION. Drift across the four
+    # mirrors is caught by tests/Unit/VersionConsistencyTest.php.
+    app_version: '%env(default:app_version_fallback:APP_VERSION)%'
+    app_version_fallback: '0.0.0-dev'
+    # Independent version for the user manual under /manual.
+    # Canonical value lives in the Makefile (MANUAL_VERSION). Mirrored in environment/.env so
+    # the dev container exports it; VersionConsistencyTest catches drift. MANUAL_VERSION env
+    # var overrides the fallback below — supports staging suffixes (e.g. 1.0.0-beta.1+staging).
+    manual_version: '%env(default:manual_version_fallback:MANUAL_VERSION)%'
+    manual_version_fallback: '0.0.0-dev'
+    # SEC-021 (#190): limits for every outbound fetch (CSAF, EPSS, KEV, recheck). The largest real
+    # answer is BSI's WID ROLIE feed: 47 MB on 2026-10-20 (38 MB in 07/2026); Red Hat's changes.csv
+    # files are 1.7 and 3.9 MB, the KEV list 1.8 MB. 100 MiB leaves room for the feed to grow while
+    # still cutting off an endless body long before it exhausts the worker.
+    app.http.max_response_bytes: 104857600
+    # Total time per request, on top of the per-call idle `timeout`; stops a trickling answer that
+    # never goes idle. The 47 MB feed loads in ~2 s from a datacentre.
+    app.http.max_duration_seconds: 300
+    app.http.max_redirects: 5
+    # Exceptions to the private-network block, as a comma-separated CIDR list WITHOUT spaces
+    # (e.g. `10.20.0.5/32,10.30.0.0/24`). Needed when outbound traffic goes through an HTTP
+    # proxy with a private address (HTTPS_PROXY) — the connection then goes to the proxy, and its
+    # IP is what gets checked — or for an internal mirror. Empty = block every private target.
+    # Override per stage with OUTBOUND_ALLOWED_SUBNETS; the processors read right to left, so an
+    # env var that is set but empty falls back to the empty default before `csv` splits it.
+    app.http.outbound_allowed_subnets_default: ''
+    app.http.outbound_allowed_subnets: '%env(csv:default:app.http.outbound_allowed_subnets_default:OUTBOUND_ALLOWED_SUBNETS)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        # Doctrine entities are instantiated by the ORM, never fetched from the container —
+        # registering them as (shared) services only pollutes it and, in FrankenPHP worker mode,
+        # makes container-based state-leak linters (Igor, issue #15) flag every setter as a
+        # cross-request mutation. Mirrors the stock Symfony skeleton exclude. Kernel.php is not a
+        # service either.
+        exclude:
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    # SEC-M01/M02 + SEC-MD04: Shared, pre-configured converter — html_input:allow is safe
+    # because manual source files are local, version-controlled and trusted (not user-generated).
+    # Allows rich components (Bento grids, SVGs). allow_unsafe_links:false remains active to
+    # block javascript: and data: URIs in links/images. Adds HeadingPermalink and Table extensions.
+    #
+    # Registered under an explicit, project-specific service id so it is NOT autowired into any
+    # future MarkdownConverter consumer. Manual sites bind to it via #[Autowire(service: ...)].
+    app.markdown.manual_converter:
+        class: League\CommonMark\MarkdownConverter
+        factory: ['App\Markdown\ManualMarkdownConverterFactory', 'create']
+
+    # SEC-021 (#190): every HttpClientInterface in the app fetches from the internet on behalf of
+    # data a third party controls (provider metadata, feed links, changes.csv, advisory URLs).
+    # Outermost: NoPrivateNetworkHttpClient refuses private, loopback and link-local targets
+    # (database, FrankenPHP admin API, cloud metadata) — checked after DNS resolution and again
+    # on every redirect hop, which it follows itself. Inside it, OutboundHttpClient enforces
+    # https and the byte budget on each hop. Higher priority = closer to the real client.
+    App\Service\Http\OutboundHttpClient:
+        decorates: http_client
+        decoration_priority: 20
+        arguments:
+            $client: '@.inner'
+            $maxResponseBytes: '%app.http.max_response_bytes%'
+
+    app.http_client.no_private_network:
+        class: Symfony\Component\HttpClient\NoPrivateNetworkHttpClient
+        decorates: http_client
+        decoration_priority: 10
+        arguments:
+            $client: '@.inner'
+            $subnets: null
+            $allowList: '%app.http.outbound_allowed_subnets%'
+
+    # I-01 (#200): the dh/auditor viewer is off (`viewer: false`), but its controller still carried
+    # #[AsController] via the bundle's autoconfigure(), so `routing.controllers` imported its three
+    # routes (/audit/transaction/{hash}, /audit/{entity}/{id}, a second /audit) in every env — and
+    # flipping `viewer: true` would have exposed every audit table without the app's access checks.
+    # Redefined without autoconfiguration, the class carries no routing.controller tag and its
+    # routes are never loaded. The app's own /audit (#32, AuditController) is unaffected.
+    DH\AuditorBundle\Controller\ViewerController:
+        autoconfigure: false
+        arguments:
+            $environment: '@twig'
+            $activityGraphProvider: '@?DH\AuditorBundle\Viewer\ActivityGraphProvider'
+
+    # #312: the idle worker logs "Worker waiting for PostgreSQL LISTEN/NOTIFY wake-up." at DEBUG
+    # once a second (the scheduler transports cap the wait at the 1 s sleep), on the `app`
+    # channel. In prod that filled up to 45 of the 50 records an error mail carries. Redefined
+    # (same arguments as doctrine-bundle's config/messenger.php) to move it onto its own channel,
+    # which the prod fingers_crossed handler excludes.
+    messenger.transport.doctrine.pg_notify_on_idle_listener:
+        class: Symfony\Component\Messenger\Bridge\Doctrine\EventListener\PostgreSqlNotifyOnIdleListener
+        autowire: false
+        autoconfigure: false
+        arguments: ['@logger', '@?clock']
+        tags:
+            - kernel.event_subscriber
+            - { name: monolog.logger, channel: messenger_idle }
+
+when@prod:
+    services:
+        # Issue #144: names the sending instance in prod error mails. Bound to the
+        # `symfony_mailer` handler, which exists only in prod — naming that handler on
+        # the class would abort the dev/test container. Redefining the service here
+        # drops `_defaults`, hence the explicit autowire.
+        App\Monolog\InstanceProcessor:
+            autowire: true
+            tags:
+                - { name: monolog.processor, handler: symfony_mailer }

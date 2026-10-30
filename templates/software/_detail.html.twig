@@ -1,0 +1,133 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    {% if is_granted('SOFTWARE_MODIFY', software) %}
+        <a href="{{ path('app_vulnerability_new', {'software': software.uuid}) }}" class="btn btn-sm btn-outline-primary" data-turbo-frame="_top">
+            {{ 'software.action.add_vulnerability'|trans }}
+        </a>
+    {% endif %}
+    {% if is_granted('SOFTWARE_SUCCESSOR', software) %}
+        <a href="{{ path('app_software_successor_new', {'uuid': software.uuid}|merge(return_params ?? {})) }}" class="btn btn-sm btn-outline-primary" data-turbo-frame="_top">
+            {{ 'software.successor.action'|trans }}
+        </a>
+    {% endif %}
+</div>
+
+<ul class="nav nav-tabs mb-3" data-bs-toggle="tabs">
+    <li class="nav-item">
+        <a href="#tab-software-detail" class="nav-link active" data-bs-toggle="tab">{{ 'software.section.details'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-software-meta" class="nav-link" data-bs-toggle="tab">{{ 'software.section.meta'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-software-history" class="nav-link" data-bs-toggle="tab">{{ 'audit.tab.history'|trans }}</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active show" id="tab-software-detail">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.name', value: software.name } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.vendor', value: software.vendor.name } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.product_key', value: software.productKey } %}
+
+        {% set version_html %}
+            <span class="badge bg-blue-lt">{{ software.version }}</span>
+            {% if software.comparableVersion is null and software.maintenanceSource.value == 'import' %}
+                <span class="text-warning ms-2">{{ 'software.version_not_comparable'|trans }}</span>
+            {% elseif software.comparableVersion is not null and software.comparableVersion != software.version %}
+                <span class="text-secondary ms-2">{{ 'software.version_compared_as'|trans({'%version%': software.comparableVersion}) }}</span>
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.version', value_html: version_html } %}
+
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.aliases', value: software.aliases ? software.aliases|join(', ') : null } %}
+
+        {% set eol_html %}
+            {% if software.eolDate %}
+                <span class="badge {{ software.eolDate < date() ? 'bg-red-lt' : 'bg-yellow-lt' }}">
+                    {{ software.eolDate|format_datetime(dateFormat='short', timeFormat='none') }}
+                </span>
+            {% else %}
+                —
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.eol_date', value_html: eol_html } %}
+
+        {% set maintenance_source_html %}
+            <span class="badge bg-{{ software.maintenanceSource.color() }}-lt">{{ ('maintenance_source.' ~ software.maintenanceSource.value)|trans }}</span>
+            {% if software.maintenanceSource.value == 'import' and software.assetGroups is empty %}
+                {# #319: matched by the CSAF import, but every hit is skipped without an asset group. #}
+                <span class="text-warning ms-2">{{ 'software.import_without_asset_group'|trans }}</span>
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.maintenance_source', value_html: maintenance_source_html } %}
+
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.responsible_user', value: software.responsibleUser ? software.responsibleUser.firstName ~ ' ' ~ software.responsibleUser.lastName ~ ' (' ~ software.responsibleUser.username ~ ')' } %}
+
+        {% set active_html %}
+            {% if software.active %}
+                <span class="badge bg-green-lt">{{ 'common.yes'|trans }}</span>
+            {% else %}
+                <span class="badge bg-secondary-lt">{{ 'common.no'|trans }}</span>
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'software.field.active', value_html: active_html } %}
+
+        {% if software.predecessor or successors|default([])|length > 0 or software.supersededAt %}
+            {% if software.predecessor %}
+                {% set predecessor_html %}
+                    {# #201: another version may belong to someone else — link only if it can be opened. #}
+                    {% if is_granted('SOFTWARE_VIEW', software.predecessor) %}
+                        <a href="{{ path('app_software_show', {'uuid': software.predecessor.uuid}) }}">
+                            {{ software.predecessor.name }} {{ software.predecessor.version }}
+                        </a>
+                    {% else %}
+                        {{ software.predecessor.name }} {{ software.predecessor.version }}
+                    {% endif %}
+                {% endset %}
+                {% include '_include/_detail_row.html.twig' with { label: 'software.successor.predecessor_label', value_html: predecessor_html } %}
+            {% endif %}
+
+            {% if successors|default([])|length > 0 %}
+                {% set successors_html %}
+                    <ul class="list-unstyled mb-0">
+                        {% for s in successors %}
+                            <li>
+                                {% if is_granted('SOFTWARE_VIEW', s) %}
+                                    <a href="{{ path('app_software_show', {'uuid': s.uuid}) }}">
+                                        {{ s.name }} {{ s.version }}
+                                    </a>
+                                {% else %}
+                                    {{ s.name }} {{ s.version }}
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endset %}
+                {% include '_include/_detail_row.html.twig' with { label: 'software.successor.successors', value_html: successors_html } %}
+            {% endif %}
+
+            {% if software.supersededAt %}
+                {% include '_include/_detail_row.html.twig' with {
+                    label: 'software.successor.superseded_at',
+                    value: software.supersededAt|format_datetime(dateFormat='short', timeFormat='short')
+                } %}
+            {% endif %}
+        {% endif %}
+
+    </div>
+    <div class="tab-pane" id="tab-software-meta">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_at', value: software.createdAt ? software.createdAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_by', value: software.createdBy } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_at', value: software.updatedAt ? software.updatedAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_by', value: software.updatedBy } %}
+
+    </div>
+    <div class="tab-pane" id="tab-software-history">
+        {% include '_include/_audit_timeline.html.twig' with { entity: software, entity_slug: 'software' } %}
+    </div>
+</div>

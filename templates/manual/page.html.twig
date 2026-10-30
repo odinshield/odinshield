@@ -1,0 +1,98 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'manual/manual_base.html.twig' %}
+
+{% set slug_titles = {
+    'erste-schritte': 'nav.first_steps'|trans({}, 'manual'),
+    'schwachstellen': 'nav.vulnerabilities'|trans({}, 'manual'),
+    'inventar': 'nav.inventory'|trans({}, 'manual'),
+    'team': 'nav.team'|trans({}, 'manual'),
+    'einstellungen': 'nav.settings'|trans({}, 'manual'),
+    'faq': 'nav.faq'|trans({}, 'manual'),
+    'glossar': 'nav.glossary'|trans({}, 'manual'),
+    'tipps': 'nav.tips'|trans({}, 'manual'),
+} %}
+
+{# #207 (UX-44): same reading order as the drawer in manual_base.html.twig — the four guides,
+   then the reference section. Change both together. #}
+{% set prev_map = {
+    'schwachstellen': 'erste-schritte',
+    'inventar': 'schwachstellen',
+    'einstellungen': 'inventar',
+    'team': 'einstellungen',
+    'faq': 'team',
+    'glossar': 'faq',
+    'tipps': 'glossar',
+} %}
+
+{% set next_map = {
+    'erste-schritte': 'schwachstellen',
+    'schwachstellen': 'inventar',
+    'inventar': 'einstellungen',
+    'einstellungen': 'team',
+    'team': 'faq',
+    'faq': 'glossar',
+    'glossar': 'tipps',
+} %}
+
+{% set prev_slug = prev_map[current_slug] ?? null %}
+{% set next_slug = next_map[current_slug] ?? null %}
+
+{% block title %}{{ slug_titles[current_slug] ?? '' }} – {{ 'title'|trans({}, 'manual') }} – OdinShield{% endblock %}
+
+{% block breadcrumb %}
+    {% if current_slug != 'erste-schritte' %}
+        <li class="manual-breadcrumb-item active" aria-current="page">{{ slug_titles[current_slug] ?? current_slug }}</li>
+    {% endif %}
+{% endblock %}
+
+{% block body %}
+    {# SEC-M01: html_content is safe — MarkdownConverter is configured with html_input:allow.
+       This is acceptable because manual source files are local, version-controlled, and
+       trusted (not user-generated). Relaxing this allows rich components like Bento grids.
+       allow_unsafe_links:false remains active (see ManualMarkdownConverterFactory). |raw is
+       required because the converter produces valid HTML. #}
+    {{ html_content|raw }}
+{% endblock %}
+
+{% block pagination %}
+<nav class="manual-pagination" aria-label="{{ 'pagination.label'|trans({}, 'manual') }}">
+    {% if prev_slug %}
+        <a class="manual-pagination-link prev" href="{{ path('app_manual_page', {slug: prev_slug}) }}" rel="prev">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12l14 0"/><path d="M5 12l6 6"/><path d="M5 12l6 -6"/>
+            </svg>
+            <span class="manual-pagination-meta">
+                <span class="manual-pagination-direction">{{ 'pagination.previous'|trans({}, 'manual') }}</span>
+                <span class="manual-pagination-title">{{ slug_titles[prev_slug] ?? prev_slug }}</span>
+            </span>
+        </a>
+    {% else %}
+        <span></span>
+    {% endif %}
+
+    {% if next_slug %}
+        <a class="manual-pagination-link next" href="{{ path('app_manual_page', {slug: next_slug}) }}" rel="next">
+            <span class="manual-pagination-meta">
+                <span class="manual-pagination-direction">{{ 'pagination.next'|trans({}, 'manual') }}</span>
+                <span class="manual-pagination-title">{{ slug_titles[next_slug] ?? next_slug }}</span>
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12l14 0"/><path d="M19 12l-6 6"/><path d="M19 12l-6 -6"/>
+            </svg>
+        </a>
+    {% else %}
+        <a class="manual-pagination-link next" href="{{ path('app_dashboard') }}">
+            <span class="manual-pagination-meta">
+                <span class="manual-pagination-direction">{{ 'pagination.finish'|trans({}, 'manual') }}</span>
+                <span class="manual-pagination-title">{{ 'back_to_app'|trans({}, 'manual') }}</span>
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12l14 0"/><path d="M19 12l-6 6"/><path d="M19 12l-6 -6"/>
+            </svg>
+        </a>
+    {% endif %}
+</nav>
+{% endblock %}

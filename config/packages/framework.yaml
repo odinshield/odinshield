@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+
+    # Trust the directly-connecting IP (e.g. Traefik) when TRUSTED_PROXIES=REMOTE_ADDR.
+    # Leave unset in dev — no proxy sits in front of FrankenPHP locally.
+    trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
+    trusted_headers:
+        - x-forwarded-for
+        - x-forwarded-proto
+        - x-forwarded-port
+        - x-forwarded-host
+
+    # SEC-003: Defence-in-depth Host header validation. Traefik already rejects
+    # unknown hosts, but a stale or misconfigured routing rule must not let a
+    # poisoned Host header reach request-bound URL generation. Empty (default)
+    # in dev disables the check; set TRUSTED_HOSTS_REGEX in prod (see
+    # compose.deploy.yaml / .env.deploy.example).
+    trusted_hosts: '%env(default::TRUSTED_HOSTS_REGEX)%'
+
+    # Note that the session will be started ONLY if you read or write from it.
+    session:
+        cookie_secure: auto
+        cookie_samesite: lax
+        cookie_httponly: true
+
+    # SEC-021 (#190): defaults for every outbound fetch; values and reasoning in services.yaml.
+    http_client:
+        default_options:
+            max_redirects: '%app.http.max_redirects%'
+            max_duration: '%app.http.max_duration_seconds%'
+
+    #esi: true
+    #fragments: true
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file

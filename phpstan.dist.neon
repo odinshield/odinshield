@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+parameters:
+    phpVersion: 80505
+    level: 8
+    treatPhpDocTypesAsCertain: false
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    doctrine:
+        objectManagerLoader: tests/doctrine_object_manager.php
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+    excludePaths:
+        - config/reference.php
+
+    ignoreErrors:
+        -
+            identifier: doctrine.columnType
+            path: src/Entity/Vulnerability.php
+            message: '#\$discoveredAt type mapping mismatch#'
+            count: 1
+        # getAllowedEnvs() is called by the framework through KernelTrait's private
+        # method; PHPStan cannot trace the trait-scoped call to this override and
+        # reports it as unused. The override is effective (enforces APP_ENV values).
+        -
+            identifier: method.unused
+            path: src/Kernel.php
+            message: '#Method App\\Kernel::getAllowedEnvs\(\) is unused#'
+            count: 1

@@ -1,0 +1,128 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+user:
+    password:
+        not_blank: 'Password is required.'
+        too_short: 'Password must be at least {{ min_length }} characters long.'
+        missing_uppercase: 'Password must contain at least one uppercase letter.'
+        missing_lowercase: 'Password must contain at least one lowercase letter.'
+        missing_digit: 'Password must contain at least one digit.'
+        missing_special: 'Password must contain at least one punctuation character or a space (e.g. . , - _ ! ? #).'
+        passphrase_alternative: 'Alternatively, a passphrase will do: at least {{ passphrase_length }} characters using at least {{ passphrase_classes }} of the four character types (uppercase, lowercase, digits, punctuation and spaces), e.g. several words separated by spaces.'
+        mismatch: 'The passwords do not match.'
+    email:
+        not_blank: 'Email address is required.'
+        invalid: 'Please enter a valid email address.'
+        too_long: 'Email address must not exceed 180 characters.'
+        already_used: 'This email address is already in use.'
+    first_name:
+        too_long: 'First name must not exceed 100 characters.'
+    last_name:
+        too_long: 'Last name must not exceed 100 characters.'
+    username:
+        too_long: 'Username must not exceed 50 characters.'
+        already_used: 'This username is already taken.'
+    locale:
+        too_long: 'Locale must not exceed 10 characters.'
+        invalid: 'Please enter a valid locale (e.g. en, de, en_US).'
+    created_by:
+        too_long: 'Created by must not exceed 200 characters.'
+    updated_by:
+        too_long: 'Updated by must not exceed 200 characters.'
+
+asset_type:
+    name:
+        not_blank: 'Asset type name is required.'
+        too_long: 'Asset type name must not exceed 120 characters.'
+        already_used: 'This asset type name is already in use.'
+
+asset_group:
+    asset_type:
+        not_null: 'Asset type is required.'
+    name:
+        not_blank: 'Asset group name is required.'
+        too_long: 'Asset group name must not exceed 150 characters.'
+        already_used: 'This asset group name is already in use.'
+    responsible_user:
+        inactive: 'The responsible user must be active.'
+        not_aligned: 'The responsible user must belong to a user group that is linked to the selected asset type.'
+
+vendor:
+    aliases:
+        too_long: 'An alias name must not exceed 150 characters.'
+    name:
+        not_blank: 'Vendor name is required.'
+        too_long: 'Vendor name must not exceed 150 characters.'
+    vendor_key:
+        not_blank: 'Vendor key is required.'
+        too_long: 'Vendor key must not exceed 150 characters.'
+        already_used: 'This vendor key is already in use.'
+    website:
+        too_long: 'Website URL must not exceed 255 characters.'
+        invalid: 'Please enter a valid website URL.'
+    advisory_url:
+        too_long: 'Advisory URL must not exceed 255 characters.'
+        invalid: 'Please enter a valid advisory URL.'
+    active:
+        has_active_software: 'The vendor cannot be deactivated while active software products are assigned.'
+
+software:
+    vendor:
+        not_null: 'Vendor is required.'
+    name:
+        not_blank: 'Software name is required.'
+        too_long: 'Software name must not exceed 150 characters.'
+    product_key:
+        not_blank: 'Product key is required.'
+        too_long: 'Product key must not exceed 150 characters.'
+    version:
+        not_blank: 'Version is required.'
+        too_long: 'Version must not exceed 80 characters.'
+    aliases:
+        too_long: 'An alias name must not exceed 150 characters.'
+    vendor_product_version:
+        already_used: 'This combination of vendor, product key and version already exists.'
+
+vulnerability:
+    title:
+        not_blank: 'Vulnerability title is required.'
+        too_long: 'Vulnerability title must not exceed 200 characters.'
+    cve_id:
+        too_long: 'CVE ID must not exceed 20 characters.'
+        invalid: 'CVE ID must follow the format CVE-YYYY-NNNN (e.g. CVE-2025-12345).'
+    cvss_score:
+        out_of_range: 'CVSS score must be between 0.0 and 10.0.'
+    epss_score:
+        out_of_range: 'EPSS score must be between 0.0 and 100.0.'
+    discovered_at:
+        not_null: 'Discovery date is required.'
+    asset_groups:
+        min_one: 'At least one asset group must be selected.'
+        not_covered_by_software: 'Asset group "%asset_group%" cannot be added: according to the inventory, none of the selected software products runs there. Assign the software to that asset group in the inventory, or deselect the software if no inventory product is affected.'
+    software:
+        no_asset_groups: 'The selected software is not assigned to any asset group in the inventory, so no occurrence can be created. Assign it to an asset group in the inventory, or deselect the software.'
+    advisory_url:
+        invalid: 'Advisory URL must be a valid http or https URL.'
+        too_long: 'Advisory URL must not exceed 500 characters.'
+    status:
+        occurrences_not_terminal: 'This status cannot be set while %count% affected asset group is still open. All occurrences must first be resolved, risk-accepted, or closed.|This status cannot be set while %count% affected asset groups are still open. All occurrences must first be resolved, risk-accepted, or closed.'
+    severity_override_reason:
+        required: 'The severity differs from the source value. Please justify the different rating.'
+        too_long: 'The justification may be at most 2000 characters long.'
+
+user_group:
+    name:
+        not_blank: 'User group name is required.'
+        too_long: 'User group name must not exceed 120 characters.'
+        already_used: 'This user group name is already in use.'
+
+# SEC-001: re-authentication for password change. Lives in the validators domain
+# because Symfony's UserPassword constraint translates through that domain.
+user_settings:
+    current_password:
+        invalid: 'The current password you entered is incorrect.'
+form:
+    choice:
+        not_null: 'Please select a value.'

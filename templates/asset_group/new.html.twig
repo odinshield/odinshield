@@ -1,0 +1,39 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'asset_group.new'|trans }} - OdinShield{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <a href="{{ path('app_asset_group_index', return_params ?? {}) }}" class="btn btn-ghost-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M15 6l-6 6l6 6"/>
+                    </svg>
+                    {{ 'asset_group.back_to_list'|trans }}
+                </a>
+            </div>
+            <div class="col">
+                <h1 class="page-title">{{ 'asset_group.new'|trans }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            {{ include('asset_group/_form.html.twig', {return_params: return_params ?? {}}) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

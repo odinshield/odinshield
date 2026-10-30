@@ -1,0 +1,57 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import field_errors %}
+<div class="card-body">
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+{{ form_widget(form.lockVersion) }}
+
+
+{% if conflict ?? false %}
+    {% include '_include/_optimistic_lock_banner.html.twig' with {
+        last_editor: lastEditor ?? null,
+        last_edited_at: lastEditedAt ?? null,
+        audit_url: path('app_asset_type_show', {uuid: asset_type.uuid}) ~ '#tab-asset-type-history',
+    } only %}
+{% endif %}
+
+<div class="row">
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.name.vars.id }}">
+            {{ form.name.vars.label|trans }}
+            {% if form.name.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.name, {'attr': {'class': 'form-control' ~ (not form.name.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.name) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.description.vars.id }}">
+            {{ form.description.vars.label|trans }}
+            {% if form.description.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.description, {'attr': {'class': 'form-control' ~ (not form.description.vars.valid ? ' is-invalid'), 'rows': 4}}) }}
+        {{ field_errors(form.description) }}
+    </div>
+    <div class="col-12 mb-3">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.active, {'attr': {'class': 'form-check-input mt-0'}}) }}
+            <label class="form-check-label" for="{{ form.active.vars.id }}">
+                {{ form.active.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.active) }}
+    </div>
+</div>
+
+<div class="form-footer d-flex justify-content-between">
+    <a href="{{ (return_to_show ?? false) ? path('app_asset_type_show', {'uuid': asset_type.uuid}|merge(return_params ?? {})) : path('app_asset_type_index', return_params ?? {}) }}" class="btn btn-outline-secondary">
+        {{ 'common.cancel'|trans }}
+    </a>
+    <button type="submit" class="btn btn-primary" data-controller="form-submit">
+        {{ (button_label ?? 'asset_type.save')|trans }}
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>

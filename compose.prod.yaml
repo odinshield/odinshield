@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Production overrides — usage:
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d
+services:
+  php:
+    image: ${IMAGES_PREFIX:-}odinshield-php-prod
+    build:
+      context: .
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}
+      # Recycle each worker after N requests to bound memory growth.
+      # Read by App\Runtime\FrankenPhpSymfony\Runtime — not a Caddy directive.
+      FRANKENPHP_LOOP_MAX: ${FRANKENPHP_LOOP_MAX:-1000}
+
+  worker:
+    image: ${IMAGES_PREFIX:-}odinshield-php-prod
+    build:
+      context: .
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}

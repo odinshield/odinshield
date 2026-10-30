@@ -1,0 +1,43 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{# Issue #223: a newer OdinShield release is published — ISB and admin only, decided in
+   DashboardController. A security release is a warning, any other an info.
+
+   Not dismissible, like the source-health banner: it goes away when the installation is updated.
+   The link comes from version.json and is https-only (UpdateChecker drops anything else).
+
+   Variables:
+   - available_update: \App\Service\UpdateCheck\AvailableUpdate — never null here, the caller checks
+#}
+<div class="alert {{ available_update.security ? 'alert-warning' : 'alert-info' }} mb-3" role="status">
+    <div class="d-flex">
+        <div>
+            {# Tabler "download" #}
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon alert-icon me-2" aria-hidden="true">
+                <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/>
+                <path d="M7 11l5 5l5 -5"/>
+                <path d="M12 4l0 12"/>
+            </svg>
+        </div>
+        <div>
+            <h2 class="alert-title h4">
+                {{ (available_update.security ? 'dashboard.update.title_security' : 'dashboard.update.title')|trans({'%version%': available_update.version}) }}
+            </h2>
+            <div class="text-secondary">
+                {{ 'dashboard.update.body'|trans({'%current%': available_update.currentVersion}) }}
+            </div>
+            {% if available_update.url %}
+                <div class="mt-2">
+                    <a href="{{ available_update.url }}" class="alert-link" target="_blank" rel="noopener noreferrer">
+                        {{- 'dashboard.update.link'|trans -}}
+                        <span class="visually-hidden"> {{ 'common.opens_in_new_tab'|trans }}</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

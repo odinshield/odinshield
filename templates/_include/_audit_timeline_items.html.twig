@@ -1,0 +1,17 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+  Per-entity timeline items (used by AuditController::timeline + the "load more" endpoint).
+  Delegates each entry to the shared `audit_entry` macro; no entity label here since the page
+  is already scoped to a single entity. `entity_class` is the audited FQCN — it lets the macro
+  translate enum values (issue #64).
+#}
+{% from '_include/_audit_entry.html.twig' import audit_entry %}
+{% for entry in entries %}
+    {{ audit_entry(entry, null, entity_class|default(null)) }}
+{% endfor %}
+{% if has_more is defined and has_more %}
+    <li data-timeline-has-more hidden></li>
+{% endif %}

@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+dh_auditor:
+    enabled: true
+    timezone: 'Europe/Berlin'
+    providers:
+        doctrine:
+            viewer: false
+            table_suffix: '_audit'
+            ignored_columns:
+                - id
+                - uuid
+                - createdAt
+                - updatedAt
+                - createdBy
+                - updatedBy
+                - lockVersion
+                - csafSources
+                - csaf_sources
+                - cveIds
+                - cve_ids
+                - epssScore
+                - epss_score

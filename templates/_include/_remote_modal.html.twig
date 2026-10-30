@@ -1,0 +1,41 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+    Generic remote-modal component.
+
+    Variables (all optional):
+      modal_id      – id attribute of the modal element  (default: 'remoteModal')
+      modal_size    – dialog size class                  (default: 'modal-lg')
+      primary_label – translation key for primary button; omit to hide the button
+      primary_class – CSS class for primary button       (default: 'btn-primary')
+#}
+{% set modal_id      = modal_id      ?? 'remoteModal' %}
+{% set modal_size    = modal_size    ?? 'modal-lg' %}
+{% set primary_class = primary_class ?? 'btn-primary' %}
+
+<div class="modal modal-blur fade" id="{{ modal_id }}" tabindex="-1" role="dialog" aria-hidden="true" aria-labelledby="{{ modal_id }}-title"
+     data-remote-modal-target="dialog">
+    <div class="modal-dialog {{ modal_size }} modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ modal_id }}-title" data-remote-modal-target="title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="{{ 'common.close'|trans }}"></button>
+            </div>
+            <div class="modal-body" data-remote-modal-target="body"></div>
+            <div class="modal-footer justify-content-between">
+                {# #207 (UX-45): the modal only shows a record — there is nothing to cancel. #}
+                <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal">
+                    {{ 'common.close'|trans }}
+                </button>
+                {% if primary_label is defined %}
+                    <a href="#" class="btn {{ primary_class }}" data-remote-modal-target="primaryLink">
+                        {{ primary_label|trans }}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

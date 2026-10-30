@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Mirrors .gitea/ISSUE_TEMPLATE/config.yaml. Blank issues stay enabled: not every
+# report fits a form, and turning people away is worse than an unstructured issue.
+#
+# contact_links needs ABSOLUTE urls — a relative path is silently dropped.
+# GitHub's private reporting form is the preferred route (SECURITY.md), the
+# mailto is the alternative for reporters without a GitHub account.
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability (confidential)
+    url: https://github.com/odinshield/odinshield/security/advisories/new
+    about: Report security findings privately through GitHub — never as a public issue. See SECURITY.md.
+  - name: Security vulnerability by email (confidential)
+    url: mailto:security@odinshield.net?subject=%5BOdinShield%20Security%5D
+    about: Report security findings privately — never as a public issue. See SECURITY.md.

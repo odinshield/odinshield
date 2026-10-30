@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+twig:
+    file_name_pattern: '*.twig'
+    # #206: links each widget to its hint and errors (aria-describedby/aria-invalid).
+    form_themes: ['form/a11y_layout.html.twig']
+    globals:
+        app_version: '%app_version%'
+        manual_version: '%manual_version%'
+        # Optional override for the environment badge in the navbar.
+        # Defaults to empty (template falls back to app.environment).
+        # Set APP_ENV_LABEL=staging in deployment env to show a "STAGING" badge
+        # while still running with APP_ENV=prod (preserves prod cache + optimization).
+        app_env_label: '%env(default::APP_ENV_LABEL)%'
+
+when@test:
+    twig:
+        strict_variables: true

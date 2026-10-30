@@ -1,0 +1,46 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+  Severity / effective-risk badge — a coloured Tabler shield glyph + text label. The shield SHAPE
+  (shield-x / shield-exclamation / shield-half / shield-check / shield) is the primary cue, so
+  Critical and High stay distinguishable even though red and orange sit close in hue (WCAG 1.4.1);
+  the text label is the second non-colour cue. Deliberately a different visual language from the
+  flat light-tint status badges (`bg-*-lt`) — the two axes never share a look in the same list.
+  Colour tokens (see app.css `.severity-badge--*`) come from *::color(); glyph names from
+  *::icon(). The two enums (VulnerabilitySeverity / EffectiveRiskBand) map to the same glyph set.
+
+  Params:
+    color – colour token from *::color() (red / orange / yellow / green / secondary)
+    label – already-translated text (may include a score suffix, e.g. "High (72)")
+    icon  – Tabler shield glyph name from *::icon() (shield-x / shield-exclamation / …)
+    title – optional tooltip text
+#}
+{% macro badge(color, label, icon, title = null) %}
+    <span class="severity-badge severity-badge--{{ color }}"{% if title %} title="{{ title }}"{% endif %}>
+        {{ _self.shield(icon) }}
+        <span class="severity-badge__label">{{ label }}</span>
+    </span>
+{% endmacro %}
+
+{#
+  Inline Tabler shield glyph (outline set, viewBox 0 0 24 24). Only the five shields used by the
+  risk enums are embedded; stroke inherits `currentColor` so the colour comes from the badge.
+#}
+{% macro shield(name) %}
+    {% set paths = {
+        'shield': ['M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3'],
+        'shield-x': ['M13.252 20.601c-.408 .155 -.826 .288 -1.252 .399a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.19 7.357', 'M22 22l-5 -5', 'M17 22l5 -5'],
+        'shield-exclamation': ['M15.04 19.745c-.942 .551 -1.964 .976 -3.04 1.255a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 .195 6.015', 'M19 16v3', 'M19 22v.01'],
+        'shield-half': ['M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3', 'M12 3v18'],
+        'shield-check': ['M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06', 'M15 19l2 2l4 -4'],
+    } %}
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+         class="icon severity-badge__icon" aria-hidden="true">
+        {% for d in paths[name]|default(paths['shield']) %}
+            <path d="{{ d }}"/>
+        {% endfor %}
+    </svg>
+{% endmacro %}

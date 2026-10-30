@@ -1,0 +1,128 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+user:
+    password:
+        not_blank: 'Passwort ist erforderlich.'
+        too_short: 'Passwort muss mindestens {{ min_length }} Zeichen lang sein.'
+        missing_uppercase: 'Passwort muss mindestens einen Großbuchstaben enthalten.'
+        missing_lowercase: 'Passwort muss mindestens einen Kleinbuchstaben enthalten.'
+        missing_digit: 'Passwort muss mindestens eine Ziffer enthalten.'
+        missing_special: 'Passwort muss mindestens ein Satzzeichen oder ein Leerzeichen enthalten (z. B. . , - _ ! ? #).'
+        passphrase_alternative: 'Alternativ genügt eine Passphrase: mindestens {{ passphrase_length }} Zeichen aus mindestens {{ passphrase_classes }} der vier Zeichenarten (Groß-, Kleinbuchstaben, Ziffern, Satz- und Leerzeichen), z. B. mehrere Wörter mit Leerzeichen.'
+        mismatch: 'Die Passwörter stimmen nicht überein.'
+    email:
+        not_blank: 'E-Mail-Adresse ist erforderlich.'
+        invalid: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.'
+        too_long: 'E-Mail-Adresse darf maximal 180 Zeichen lang sein.'
+        already_used: 'Diese E-Mail-Adresse wird bereits verwendet.'
+    first_name:
+        too_long: 'Vorname darf maximal 100 Zeichen lang sein.'
+    last_name:
+        too_long: 'Nachname darf maximal 100 Zeichen lang sein.'
+    username:
+        too_long: 'Benutzername darf maximal 50 Zeichen lang sein.'
+        already_used: 'Dieser Benutzername wird bereits verwendet.'
+    locale:
+        too_long: 'Spracheinstellung darf maximal 10 Zeichen lang sein.'
+        invalid: 'Bitte geben Sie eine gültige Spracheinstellung ein (z.B. en, de, en_US).'
+    created_by:
+        too_long: 'Erstellt von darf maximal 200 Zeichen lang sein.'
+    updated_by:
+        too_long: 'Aktualisiert von darf maximal 200 Zeichen lang sein.'
+
+asset_type:
+    name:
+        not_blank: 'Name des Asset-Typs ist erforderlich.'
+        too_long: 'Name des Asset-Typs darf maximal 120 Zeichen lang sein.'
+        already_used: 'Dieser Name für den Asset-Typ wird bereits verwendet.'
+
+asset_group:
+    asset_type:
+        not_null: 'Asset-Typ ist erforderlich.'
+    name:
+        not_blank: 'Name der Asset-Gruppe ist erforderlich.'
+        too_long: 'Name der Asset-Gruppe darf maximal 150 Zeichen lang sein.'
+        already_used: 'Dieser Name für die Asset-Gruppe wird bereits verwendet.'
+    responsible_user:
+        inactive: 'Der Verantwortliche muss aktiv sein.'
+        not_aligned: 'Der Verantwortliche muss Mitglied einer Nutzergruppe sein, die mit dem gewählten Asset-Typ verknüpft ist.'
+
+vendor:
+    aliases:
+        too_long: 'Ein Alias-Name darf maximal 150 Zeichen lang sein.'
+    name:
+        not_blank: 'Herstellername ist erforderlich.'
+        too_long: 'Herstellername darf maximal 150 Zeichen lang sein.'
+    vendor_key:
+        not_blank: 'Vendor-Key ist erforderlich.'
+        too_long: 'Vendor-Key darf maximal 150 Zeichen lang sein.'
+        already_used: 'Dieser Vendor-Key wird bereits verwendet.'
+    website:
+        too_long: 'Website-URL darf maximal 255 Zeichen lang sein.'
+        invalid: 'Bitte geben Sie eine gültige Website-URL ein.'
+    advisory_url:
+        too_long: 'Advisory-URL darf maximal 255 Zeichen lang sein.'
+        invalid: 'Bitte geben Sie eine gültige Advisory-URL ein.'
+    active:
+        has_active_software: 'Der Hersteller kann nicht deaktiviert werden, solange aktive Softwareprodukte zugeordnet sind.'
+
+software:
+    vendor:
+        not_null: 'Hersteller ist erforderlich.'
+    name:
+        not_blank: 'Software-Name ist erforderlich.'
+        too_long: 'Software-Name darf maximal 150 Zeichen lang sein.'
+    product_key:
+        not_blank: 'Product-Key ist erforderlich.'
+        too_long: 'Product-Key darf maximal 150 Zeichen lang sein.'
+    version:
+        not_blank: 'Version ist erforderlich.'
+        too_long: 'Version darf maximal 80 Zeichen lang sein.'
+    aliases:
+        too_long: 'Ein Alias-Name darf maximal 150 Zeichen lang sein.'
+    vendor_product_version:
+        already_used: 'Diese Kombination aus Hersteller, Product-Key und Version ist bereits vorhanden.'
+
+vulnerability:
+    title:
+        not_blank: 'Titel der Schwachstelle ist erforderlich.'
+        too_long: 'Titel der Schwachstelle darf maximal 200 Zeichen lang sein.'
+    cve_id:
+        too_long: 'CVE-ID darf maximal 20 Zeichen lang sein.'
+        invalid: 'CVE-ID muss dem Format CVE-YYYY-NNNN entsprechen (z.B. CVE-2025-12345).'
+    cvss_score:
+        out_of_range: 'CVSS-Score muss zwischen 0.0 und 10.0 liegen.'
+    epss_score:
+        out_of_range: 'EPSS-Score muss zwischen 0.0 und 100.0 liegen.'
+    discovered_at:
+        not_null: 'Entdeckungsdatum ist erforderlich.'
+    asset_groups:
+        min_one: 'Mindestens eine Asset-Gruppe muss ausgewählt werden.'
+        not_covered_by_software: 'Die Asset-Gruppe "%asset_group%" kann nicht hinzugefügt werden: Laut Inventar läuft dort keines der gewählten Software-Produkte. Ordnen Sie die Software im Inventar dieser Asset-Gruppe zu, oder wählen Sie die Software ab, wenn kein Inventarprodukt betroffen ist.'
+    software:
+        no_asset_groups: 'Die gewählte Software ist im Inventar keiner Asset-Gruppe zugeordnet, daher kann kein Vorkommen entstehen. Ordnen Sie sie im Inventar einer Asset-Gruppe zu, oder wählen Sie die Software ab.'
+    advisory_url:
+        invalid: 'Advisory-URL muss eine gültige http- oder https-URL sein.'
+        too_long: 'Advisory-URL darf maximal 500 Zeichen lang sein.'
+    status:
+        occurrences_not_terminal: 'Dieser Status kann nicht gesetzt werden, solange %count% betroffene Asset-Gruppe noch offen ist. Alle Vorkommen müssen zuvor behoben, risikoakzeptiert oder geschlossen sein.|Dieser Status kann nicht gesetzt werden, solange %count% betroffene Asset-Gruppen noch offen sind. Alle Vorkommen müssen zuvor behoben, risikoakzeptiert oder geschlossen sein.'
+    severity_override_reason:
+        required: 'Der Schweregrad weicht vom Wert der Quelle ab. Bitte begründen Sie die abweichende Einstufung.'
+        too_long: 'Die Begründung darf maximal 2000 Zeichen lang sein.'
+
+user_group:
+    name:
+        not_blank: 'Name der Nutzergruppe ist erforderlich.'
+        too_long: 'Name der Nutzergruppe darf maximal 120 Zeichen lang sein.'
+        already_used: 'Dieser Name für die Nutzergruppe wird bereits verwendet.'
+
+# SEC-001: re-authentication for password change. Lives in the validators domain
+# because Symfony's UserPassword constraint translates through that domain.
+user_settings:
+    current_password:
+        invalid: 'Das eingegebene aktuelle Passwort ist nicht korrekt.'
+form:
+    choice:
+        not_null: 'Bitte einen Wert auswählen.'

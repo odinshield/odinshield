@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# CrowdSec scenario: low-and-slow brute-force against OdinShield /login
+#
+# Complement to odinshield/login-bf — that scenario catches fast bursts
+# (5 POSTs in ~50 s). This one catches attackers spreading attempts over
+# a longer window to evade per-minute rate limits: 1 attempt every 30 s
+# for ~100 minutes would still trigger.
+#
+# Both scenarios run in parallel against the same event stream.
+
+type: leaky
+name: odinshield/login-bf-slow
+description: "Low-and-slow brute-force against OdinShield /login"
+filter: |
+  evt.Meta.log_type == 'http_access-log' &&
+  evt.Parsed.verb == 'POST' &&
+  evt.Parsed.request == '/login'
+leakspeed: 5m
+capacity: 20
+groupby: evt.Meta.source_ip
+blackhole: 1h
+labels:
+  service: odinshield
+  type: bruteforce
+  remediation: true

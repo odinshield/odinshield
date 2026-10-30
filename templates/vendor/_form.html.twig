@@ -1,0 +1,119 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import help_toggle, help_text, help_switch, field_errors, nvd_cpe_link %}
+<div class="card-body">
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'form-help'}}) }}
+{{ help_switch() }}
+{{ form_widget(form.lockVersion) }}
+
+
+{% if conflict ?? false %}
+    {% include '_include/_optimistic_lock_banner.html.twig' with {
+        last_editor: lastEditor ?? null,
+        last_edited_at: lastEditedAt ?? null,
+        audit_url: path('app_vendor_show', {uuid: vendor.uuid}) ~ '#tab-vendor-history',
+    } only %}
+{% endif %}
+
+<div class="row" data-controller="slug-fill">
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.name.vars.id }}">
+            {{ form.name.vars.label|trans }}
+            {% if form.name.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.name, {'attr': {
+            'class': 'form-control' ~ (not form.name.vars.valid ? ' is-invalid'),
+            'data-slug-fill-target': 'name',
+            'data-action': 'input->slug-fill#nameInput blur->slug-fill#nameBlur',
+        }}) }}
+        {{ field_errors(form.name) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.vendorKey.vars.id }}">
+            {{ form.vendorKey.vars.label|trans }}
+            {% if form.vendorKey.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            {{ help_toggle(form.vendorKey.vars.id, form.vendorKey.vars.help) }}
+        </label>
+        {{ form_widget(form.vendorKey, {'attr': {
+            'class': 'form-control' ~ (not form.vendorKey.vars.valid ? ' is-invalid'),
+            'data-slug-fill-target': 'key',
+            'data-action': 'input->slug-fill#keyInput',
+        }}) }}
+        {{ help_text(form.vendorKey.vars.id, form.vendorKey.vars.help) }}
+        {{ nvd_cpe_link() }}
+        {{ field_errors(form.vendorKey) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.aliases.vars.id }}">
+            {{ form.aliases.vars.label|trans }}
+            {% if form.aliases.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            {{ help_toggle(form.aliases.vars.id, form.aliases.vars.help) }}
+        </label>
+        {{ form_widget(form.aliases, {'attr': {'class': 'form-control' ~ (not form.aliases.vars.valid ? ' is-invalid')}}) }}
+        {{ help_text(form.aliases.vars.id, form.aliases.vars.help) }}
+        {{ field_errors(form.aliases) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.website.vars.id }}">
+            {{ form.website.vars.label|trans }}
+            {% if form.website.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        <div class="input-group">
+            {{ form_widget(form.website, {'attr': {'class': 'form-control' ~ (not form.website.vars.valid ? ' is-invalid'), 'placeholder': 'vendor.field.website_placeholder'}}) }}
+            <span class="input-group-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" class="icon">
+                    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/>
+                    <path d="M3.6 9h16.8"/>
+                    <path d="M3.6 15h16.8"/>
+                    <path d="M11.5 3a17 17 0 0 0 0 18"/>
+                    <path d="M12.5 3a17 17 0 0 1 0 18"/>
+                </svg>
+            </span>
+        </div>
+        {{ field_errors(form.website) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.advisoryUrl.vars.id }}">
+            {{ form.advisoryUrl.vars.label|trans }}
+            {% if form.advisoryUrl.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        <div class="input-group">
+            {{ form_widget(form.advisoryUrl, {'attr': {'class': 'form-control' ~ (not form.advisoryUrl.vars.valid ? ' is-invalid'), 'placeholder': 'vendor.field.advisory_url_placeholder'}}) }}
+            <span class="input-group-text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" class="icon">
+                    <path d="M12 9v4"/>
+                    <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/>
+                    <path d="M12 16h.01"/>
+                </svg>
+            </span>
+        </div>
+        {{ field_errors(form.advisoryUrl) }}
+    </div>
+    <div class="col-12 mb-3">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.active, {'attr': {'class': 'form-check-input mt-0' ~ (not form.active.vars.valid ? ' is-invalid')}}) }}
+            <label class="form-check-label" for="{{ form.active.vars.id }}">
+                {{ form.active.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.active) }}
+    </div>
+</div>
+
+<div class="form-footer d-flex justify-content-between">
+    <a href="{{ (return_to_show ?? false) ? path('app_vendor_show', {'uuid': vendor.uuid}|merge(return_params ?? {})) : path('app_vendor_index', return_params ?? {}) }}" class="btn btn-outline-secondary">
+        {{ 'common.cancel'|trans }}
+    </a>
+    <button type="submit" class="btn btn-primary" data-controller="form-submit">
+        {{ (button_label ?? 'vendor.save')|trans }}
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>

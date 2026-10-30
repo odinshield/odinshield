@@ -1,0 +1,35 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% set page_size = page_size ?? 50 %}
+{% set audit = audit_entries(entity, 1, page_size) %}
+{% set entries = audit.entries %}
+{% set total = audit.total %}
+
+<div data-controller="timeline"
+     data-timeline-url-value="{{ path('app_audit_timeline', {type: entity_slug, uuid: entity.uuid, page_size: page_size}) }}"
+     data-timeline-page-value="1">
+
+    {% if entries is empty %}
+        <p class="text-muted">{{ 'audit.no_entries'|trans }}</p>
+    {% else %}
+        <ul class="timeline" data-timeline-target="list">
+            {% include '_include/_audit_timeline_items.html.twig' with { entries: entries, type: entity_slug, entity_class: audit.class } %}
+        </ul>
+
+        {% if total > page_size %}
+            <div class="mt-3" data-timeline-target="loadMoreWrapper">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-timeline-target="button"
+                        data-action="timeline#loadMore">
+                    {{ 'audit.load_more'|trans }}
+                </button>
+                <div class="alert alert-danger mt-2 mb-0" role="alert" data-timeline-target="error" hidden>
+                    {{ 'audit.load_error'|trans }}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
+</div>

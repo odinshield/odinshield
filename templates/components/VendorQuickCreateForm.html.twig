@@ -1,0 +1,54 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import help_toggle, help_text, help_switch, field_errors, nvd_cpe_link %}
+<div {{ attributes }}>
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'form-help'}}) }}
+    <div class="modal-header">
+        <h5 class="modal-title">{{ 'vendor.quick_create.title'|trans }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="{{ 'common.close'|trans }}"></button>
+    </div>
+    <div class="modal-body" data-controller="slug-fill">
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.name.vars.id }}">
+                {{ form.name.vars.label|trans }}
+                {% if form.name.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            </label>
+            {{ form_widget(form.name, {'attr': {
+                'class': 'form-control' ~ (not form.name.vars.valid ? ' is-invalid'),
+                'data-slug-fill-target': 'name',
+                'data-action': 'input->slug-fill#nameInput blur->slug-fill#nameBlur'
+            }}) }}
+            {{ field_errors(form.name) }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="{{ form.vendorKey.vars.id }}">
+                {{ form.vendorKey.vars.label|trans }}
+                {% if form.vendorKey.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+                {{ help_toggle(form.vendorKey.vars.id, form.vendorKey.vars.help) }}
+            </label>
+            {{ form_widget(form.vendorKey, {'attr': {
+                'class': 'form-control' ~ (not form.vendorKey.vars.valid ? ' is-invalid'),
+                'data-slug-fill-target': 'key',
+                'data-action': 'input->slug-fill#keyInput'
+            }}) }}
+            {{ help_text(form.vendorKey.vars.id, form.vendorKey.vars.help) }}
+            {{ nvd_cpe_link() }}
+            {{ field_errors(form.vendorKey) }}
+        </div>
+    </div>
+    <div class="modal-footer justify-content-between">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            {{ 'common.cancel'|trans }}
+        </button>
+        <button type="button" class="btn btn-primary"
+                data-action="live#action"
+                data-live-action-param="save"
+                data-loading="addAttribute(disabled) addClass(btn-loading)">
+            {{ 'vendor.quick_create.save'|trans }}
+        </button>
+    </div>
+{{ form_end(form) }}
+</div>

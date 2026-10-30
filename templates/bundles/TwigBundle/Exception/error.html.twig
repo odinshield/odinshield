@@ -1,0 +1,69 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<!DOCTYPE html>
+{% set _theme_cookie = app.request ? app.request.cookies.get('theme') : null %}
+{% set _theme = _theme_cookie in ['light', 'dark'] ? _theme_cookie : (app.user and app.user.theme ? app.user.theme.value : null) %}
+<html lang="{{ app.request ? app.request.locale : 'de' }}"{% if _theme %} data-bs-theme="{{ _theme }}"{% endif %}>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ status_code }} {{ status_text }}</title>
+        <link rel="icon" href="{{ asset('img/odinshield.ico') }}" type="image/x-icon">
+        {{ importmap('app') }}
+    </head>
+    <body class="d-flex flex-column">
+        <div class="page page-center">
+            <div class="container-tight py-4">
+                <div class="empty">
+                    <div class="empty-header">{{ status_code }}</div>
+                    <h1 class="empty-title">
+                        {% if status_code == 403 %}
+                            {{ 'error.403.title'|trans }}
+                        {% elseif status_code == 404 %}
+                            {{ 'error.404.title'|trans }}
+                        {% elseif status_code == 429 %}
+                            {{ 'error.429.title'|trans }}
+                        {% elseif status_code == 500 %}
+                            {{ 'error.500.title'|trans }}
+                        {% elseif status_code == 503 %}
+                            {{ 'error.503.title'|trans }}
+                        {% else %}
+                            {{ 'error.generic.title'|trans }}
+                        {% endif %}
+                    </h1>
+                    <p class="empty-subtitle text-secondary">
+                        {% if status_code == 403 %}
+                            {{ 'error.403.subtitle'|trans }}
+                        {% elseif status_code == 404 %}
+                            {{ 'error.404.subtitle'|trans }}
+                        {% elseif status_code == 429 %}
+                            {{ 'error.429.subtitle'|trans }}
+                        {% elseif status_code == 500 %}
+                            {{ 'error.500.subtitle'|trans }}
+                        {% elseif status_code == 503 %}
+                            {{ 'error.503.subtitle'|trans }}
+                        {% else %}
+                            {{ 'error.generic.subtitle'|trans }}
+                        {% endif %}
+                    </p>
+                    <div class="empty-action">
+                        {# #221: a failed Live Component action renders this page inside Live's error
+                           iframe overlay; target="_top" navigates the whole window, not the iframe. #}
+                        <a href="{{ path('app_dashboard') }}" target="_top" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="icon">
+                                <path d="M5 12l-2 0l9 -9l9 9l-2 0"/>
+                                <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/>
+                                <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/>
+                            </svg>
+                            {{ 'error.back_home'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

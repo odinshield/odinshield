@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+live_component:
+    resource: '@LiveComponentBundle/config/routes.php'
+    prefix: '/_components'
+    # adjust prefix to add localization to your components
+    #prefix: '/{_locale}/_components'

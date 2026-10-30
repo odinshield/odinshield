@@ -1,0 +1,74 @@
+{
+    "document": {
+        "csaf_version": "2.0",
+        "title": "Apache Log4j: Mehrere Schwachstellen ermöglichen Codeausführung",
+        "tracking": {
+            "id": "WID-SEC-2021-2245",
+            "version": "1.0",
+            "status": "final",
+            "initial_release_date": "2021-12-10T10:00:00+01:00",
+            "current_release_date": "2021-12-10T10:00:00+01:00"
+        }
+    },
+    "product_tree": {
+        "branches": [
+            {
+                "category": "vendor",
+                "name": "Apache",
+                "branches": [
+                    {
+                        "category": "product_name",
+                        "name": "Log4j",
+                        "branches": [
+                            {
+                                "category": "product_version",
+                                "name": "2.14.1",
+                                "product": {
+                                    "product_id": "CSAFPID-001",
+                                    "name": "Apache Log4j 2.14.1",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*"
+                                    }
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "2.17.0",
+                                "product": {
+                                    "product_id": "CSAFPID-002",
+                                    "name": "Apache Log4j 2.17.0",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:2.3:a:apache:log4j:2.17.0:*:*:*:*:*:*:*"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "vulnerabilities": [
+        {
+            "cve": "CVE-2021-44228",
+            "title": "Log4Shell remote code execution",
+            "notes": [
+                {"category": "description", "text": "JNDI lookup feature enables remote code execution."},
+                {"category": "summary", "text": "Critical RCE vulnerability."}
+            ],
+            "remediations": [
+                {"category": "vendor_fix", "details": "Update to Log4j 2.17.0 or later."}
+            ],
+            "product_status": {
+                "known_affected": ["CSAFPID-001"],
+                "fixed": ["CSAFPID-002"]
+            },
+            "scores": [
+                {
+                    "cvss_v3_1": {"version": "3.1", "baseScore": 10.0, "baseSeverity": "CRITICAL"},
+                    "products": ["CSAFPID-001"]
+                }
+            ]
+        }
+    ]
+}

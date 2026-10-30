@@ -1,0 +1,40 @@
+{
+  "env": {
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
+    "DISABLE_FEEDBACK_COMMAND": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_TELEMETRY": "1"
+  },
+  "cleanupPeriodDays": 14,
+  "permissions": {
+    "allow": ["Read(//home/claude/.dev-browser/tmp/**)"],
+    "additionalDirectories": ["/home/claude/.dev-browser/tmp"]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "claude-statusline"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-bell"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-bell"
+          }
+        ]
+      }
+    ]
+  }
+}

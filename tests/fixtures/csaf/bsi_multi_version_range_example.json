@@ -1,0 +1,95 @@
+{
+    "document": {
+        "csaf_version": "2.0",
+        "title": "Fortinet FortiOS: Schwachstelle ermöglicht Privilegieneskalation",
+        "tracking": {
+            "id": "WID-SEC-W-2026-1492",
+            "version": "1",
+            "status": "final",
+            "initial_release_date": "2026-05-13T22:00:00.000+00:00",
+            "current_release_date": "2026-05-13T22:00:00.000+00:00"
+        }
+    },
+    "product_tree": {
+        "branches": [
+            {
+                "category": "vendor",
+                "name": "Fortinet",
+                "branches": [
+                    {
+                        "category": "product_name",
+                        "name": "FortiOS",
+                        "branches": [
+                            {
+                                "category": "product_version_range",
+                                "name": "<7.2.12",
+                                "product": {
+                                    "product_id": "PID-7.2-range",
+                                    "name": "Fortinet FortiOS <7.2.12"
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "7.2.12",
+                                "product": {
+                                    "product_id": "PID-7.2-fixed",
+                                    "name": "Fortinet FortiOS 7.2.12",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:/o:fortinet:fortios:7.2.12"
+                                    }
+                                }
+                            },
+                            {
+                                "category": "product_version_range",
+                                "name": "<7.4.9",
+                                "product": {
+                                    "product_id": "PID-7.4-range",
+                                    "name": "Fortinet FortiOS <7.4.9"
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "7.4.9",
+                                "product": {
+                                    "product_id": "PID-7.4-fixed",
+                                    "name": "Fortinet FortiOS 7.4.9",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:/o:fortinet:fortios:7.4.9"
+                                    }
+                                }
+                            },
+                            {
+                                "category": "product_version_range",
+                                "name": "<7.6.4",
+                                "product": {
+                                    "product_id": "PID-7.6-range",
+                                    "name": "Fortinet FortiOS <7.6.4"
+                                }
+                            },
+                            {
+                                "category": "product_version",
+                                "name": "7.6.4",
+                                "product": {
+                                    "product_id": "PID-7.6-fixed",
+                                    "name": "Fortinet FortiOS 7.6.4",
+                                    "product_identification_helper": {
+                                        "cpe": "cpe:/o:fortinet:fortios:7.6.4"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "vulnerabilities": [
+        {
+            "cve": "CVE-2025-53844",
+            "title": "FortiOS privilege escalation",
+            "product_status": {
+                "known_affected": ["PID-7.2-range", "PID-7.4-range", "PID-7.6-range"]
+            }
+        }
+    ]
+}

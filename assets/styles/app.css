@@ -1,0 +1,681 @@
+/*
+ * SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* app styles -- Tabler CSS is loaded via importmap */
+
+:root {
+    --tblr-font-sans-serif: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* notification badge position */
+.nav-link .badge-notification {
+    top: 0 !important;
+    right: 0 !important;
+    transform: translate(-25%, 25%) !important;
+}
+
+/* notification dropdown: shrink to content, override Tabler's 11rem default + Bootstrap's width:100% on .dropdown-item */
+.notifications-menu {
+    min-width: 8rem !important;
+}
+
+.notifications-menu .dropdown-item {
+    min-width: 0;
+    width: auto;
+    padding-inline: 1rem;
+}
+
+/* footer font size */
+.footer {
+    font-size: 0.875rem;
+}
+
+/* prevent browser scrollbar (Edge classic scrollbar) from shifting page content away from sidebar */
+html {
+    margin-left: 0 !important;
+}
+
+/* reduce gap between sidebar and content area; container-fluid = the table lists (#218) */
+@media (min-width: 992px) {
+    .page-wrapper > .page-body > .container-xl,
+    .page-wrapper > .page-body > .container-fluid,
+    .page-wrapper > .page-header > .container-xl,
+    .page-wrapper > .page-header > .container-fluid,
+    .navbar > .container-xl,
+    .navbar > .container-fluid,
+    .footer > .container-xl,
+    .footer > .container-fluid {
+        margin-inline-start: 0;
+        padding-inline-start: var(--tblr-page-padding, 1rem);
+    }
+}
+
+/* a table wider than the card scrolls inside it, never the whole page (#254); row dropdowns
+   still escape through the fixed positioning below */
+.card-table {
+    overflow-x: auto;
+}
+
+/* thin scrollbar on mobile only — the vulnerability list keeps its desktop scrollbars (#80) */
+@media (max-width: 767.98px) {
+    .card-table {
+        scrollbar-width: thin;
+        scrollbar-color: var(--tblr-border-color) var(--tblr-bg-surface-secondary);
+    }
+
+    .card-table::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .card-table::-webkit-scrollbar-track {
+        background: var(--tblr-bg-surface-secondary);
+    }
+
+    .card-table::-webkit-scrollbar-thumb {
+        background: var(--tblr-border-color);
+        border-radius: 2px;
+    }
+}
+
+/* dropdown in table: use fixed positioning to escape overflow container */
+.card-table .dropdown-menu {
+    position: fixed;
+}
+
+/* tom-select: unified wrapper treatment — single and multi render identically.
+   Wrapper padding must be 0 so .ts-control covers the full click area, including
+   the Bootstrap chevron zone. The chevron background-image on .ts-wrapper shows
+   through the transparent control; padding-inline-end on .ts-control reserves space. */
+.ts-wrapper.form-select {
+    padding: 0 !important;
+    display: flex;
+    align-items: stretch;
+    min-height: 2.75rem !important;
+}
+
+.ts-wrapper.form-select .ts-control {
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+    gap: 0.25rem;
+    min-height: unset;
+}
+
+.ts-wrapper.form-select .ts-control > input {
+    margin: 0 !important;
+}
+
+/* hide TomSelect's internal caret; rely on Bootstrap form-select chevron */
+.ts-wrapper.form-select .ts-control::after {
+    display: none !important;
+}
+
+.ts-wrapper.form-select.focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--tblr-primary-rgb), 0.25);
+}
+
+/* tom-select: selected item / chip in Tabler primary-light style (shared) */
+.ts-wrapper .ts-control .item {
+    background-color: var(--tblr-primary-lt) !important;
+    background-image: none !important;
+    color: var(--tblr-primary) !important;
+    border: 1px solid color-mix(in srgb, var(--tblr-primary) 30%, transparent) !important;
+    border-radius: 3px;
+    padding: 3px 6px 3px 8px;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.ts-wrapper .ts-control .item .remove {
+    color: var(--tblr-primary);
+    border-left-color: color-mix(in srgb, var(--tblr-primary) 30%, transparent);
+}
+
+/* tom-select: dark mode */
+[data-bs-theme="dark"] .ts-wrapper .ts-control,
+[data-bs-theme="dark"] .ts-wrapper .ts-dropdown {
+    background-color: var(--tblr-bg-surface);
+    color: var(--tblr-body-color);
+    border-color: var(--tblr-border-color);
+}
+
+[data-bs-theme="dark"] .ts-wrapper .ts-control .item {
+    background-color: var(--tblr-secondary-bg);
+    color: var(--tblr-body-color);
+    border-color: var(--tblr-border-color);
+}
+
+[data-bs-theme="dark"] .ts-wrapper .ts-dropdown .option:hover,
+[data-bs-theme="dark"] .ts-wrapper .ts-dropdown .option.active {
+    background-color: var(--tblr-active-bg);
+    color: var(--tblr-body-color);
+}
+
+/* tom-select: inactive option/item styling */
+.ts-option-inactive {
+    color: var(--tblr-secondary-color);
+    font-style: italic;
+}
+
+.ts-wrapper .ts-control .item.ts-item-inactive {
+    background-color: var(--tblr-secondary-lt) !important;
+    color: var(--tblr-secondary) !important;
+    border-color: color-mix(in srgb, var(--tblr-secondary) 30%, transparent) !important;
+    font-style: italic;
+}
+
+.ts-wrapper .ts-control .item.ts-item-inactive .remove {
+    color: var(--tblr-secondary);
+    border-left-color: color-mix(in srgb, var(--tblr-secondary) 30%, transparent);
+}
+
+/* theme toggle: show sun in light mode, moon in dark mode */
+[data-bs-theme="dark"] .icon-sun {
+    display: none;
+}
+
+[data-bs-theme="dark"] .icon-moon {
+    display: inline-block !important;
+}
+
+/* sidebar brand: Tabler 1.5 lays the brand out as "logo + fold toggle" with
+   justify-content: space-between; with the logo as its only child that pins it
+   to the start edge. Centre it explicitly (1.4.0 centred by default). The attribute
+   selector matches Tabler's own specificity (.navbar-vertical.navbar-expand-* …). */
+.navbar-vertical[class*="navbar-expand"] .navbar-brand {
+    justify-content: center;
+}
+
+/* sidebar: chevron rotation for collapsible menu */
+.nav-link-chevron {
+    transition: transform 0.2s ease-in-out;
+    flex-shrink: 0;
+}
+
+.nav-link:not(.collapsed) .nav-link-chevron {
+    transform: rotate(90deg);
+}
+
+/* detail row hover */
+.detail-row {
+    margin-block-end: 0;
+    padding: 0.5rem 0;
+    border-radius: var(--tblr-border-radius);
+    transition: background-color 0.15s ease-in-out;
+}
+
+.detail-row:nth-child(even) {
+    background-color: var(--tblr-bg-surface-tertiary);
+}
+
+.detail-row:hover {
+    background-color: var(--tblr-active-bg);
+}
+
+/* #189: keep the line breaks of multi-line text (importer history blocks, bulk-close log).
+   pre-line keeps newlines but still collapses runs of spaces and wraps normally. */
+.text-pre-line {
+    white-space: pre-line;
+}
+
+/* toast: opaque background, colored left border, faster fade-in */
+.toast {
+    background-color: var(--tblr-bg-surface) !important;
+    border-left: 4px solid transparent !important;
+    transition: opacity 0.15s ease-in-out !important;
+}
+
+.toast--success {
+    border-left-color: var(--tblr-success) !important;
+    background-color: color-mix(in srgb, var(--tblr-success) 8%, var(--tblr-bg-surface)) !important;
+}
+.toast--danger {
+    border-left-color: var(--tblr-danger) !important;
+    background-color: color-mix(in srgb, var(--tblr-danger) 8%, var(--tblr-bg-surface)) !important;
+}
+.toast--warning {
+    border-left-color: var(--tblr-warning) !important;
+    background-color: color-mix(in srgb, var(--tblr-warning) 8%, var(--tblr-bg-surface)) !important;
+}
+.toast--info {
+    border-left-color: var(--tblr-info) !important;
+    background-color: color-mix(in srgb, var(--tblr-info) 8%, var(--tblr-bg-surface)) !important;
+}
+
+/* turbo-frame: loading overlay + spinner while navigating */
+turbo-frame[busy] {
+    position: relative;
+    display: block;
+    min-height: 8rem;
+}
+
+turbo-frame[busy]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: color-mix(in srgb, var(--tblr-bg-surface) 60%, transparent);
+    z-index: 1;
+}
+
+turbo-frame[busy]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-block-start: -1.25rem;
+    margin-inline-start: -1.25rem;
+    border: 0.25rem solid var(--tblr-primary);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+    z-index: 2;
+}
+
+.table > tfoot > tr > th {
+    font-size: 0.75rem;
+    font-weight: var(--tblr-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tblr-muted);
+}
+
+/* toast container: offset below the navbar using CSS variables instead of inline style */
+.toast-container--offset {
+    z-index: var(--tblr-zindex-toast, 1090);
+    margin-block-start: var(--navbar-height, 4rem);
+}
+
+/* Severity / effective-risk palette (single source of truth). Hand-tuned + WCAG-checked risk ramp;
+   the dedicated tokens keep it out of the `--tblr-*` status palette so the two axes never share a
+   colour. Dark mode re-declares only the two darkest so the shield stays visible on the dark
+   surface — retune a colour in exactly one place. Consumed by `.severity-badge--*` below. */
+:root {
+    --severity-critical: #b02a37;
+    --severity-high: #e8590c;
+    --severity-medium: #f59f00;
+    --severity-low: #2f9e44;
+    --severity-info: #6c757d;
+}
+[data-bs-theme="dark"] {
+    --severity-critical: #e4606d;
+    --severity-low: #51cf66;
+}
+
+/* Severity / effective-risk badge: a coloured Tabler shield glyph + text label — deliberately a
+   different visual language from the light-tint status badges (`bg-*-lt`) so the two axes never
+   look alike in the same list. The shield SHAPE (per VulnerabilitySeverity::icon()) is the primary
+   non-colour cue, the text label the second (WCAG 1.4.1), so Critical vs High no longer rely on the
+   red/orange hue split alone. Colour token comes from *::color(); the shield inherits it via
+   `currentColor`, the label stays body-coloured for legibility on both themes. */
+.severity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    font-weight: var(--tblr-font-weight-medium);
+    line-height: 1;
+}
+.severity-badge__icon {
+    inline-size: 1.15em;
+    block-size: 1.15em;
+    flex-shrink: 0;
+}
+.severity-badge__label {
+    color: var(--tblr-body-color);
+}
+.severity-badge--red .severity-badge__icon {
+    color: var(--severity-critical);
+}
+.severity-badge--orange .severity-badge__icon {
+    color: var(--severity-high);
+}
+.severity-badge--yellow .severity-badge__icon {
+    color: var(--severity-medium);
+}
+.severity-badge--green .severity-badge__icon {
+    color: var(--severity-low);
+}
+.severity-badge--secondary .severity-badge__icon {
+    color: var(--severity-info);
+}
+
+/* Global audit timeline table (issue #32): rows with changes expand to reveal the field diff.
+   #206: the chevron button in the last cell toggles, not the row. */
+.audit-chevron {
+    transition: transform 0.15s ease-in-out;
+}
+.audit-toggle[aria-expanded="true"] .audit-chevron {
+    transform: rotate(90deg);
+}
+.audit-detail-row > td {
+    background-color: var(--tblr-bg-surface-secondary);
+    border-block-start: 0;
+}
+
+/* Import-status page: the table gets its own page, so it grows with the viewport instead of the
+   22rem the dashboard card used. The subtracted 16rem covers navbar, page header and card footer;
+   the min-height keeps the container usable on short viewports where the subtraction bottoms out.
+   The header stays pinned; a solid surface background keeps rows from bleeding through
+   under the collapsed-border table header while scrolling. */
+.import-status-scroll {
+    min-block-size: 12rem;
+    max-block-size: calc(100dvh - 16rem);
+    overflow-y: auto;
+}
+
+.import-status-scroll thead th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background-color: var(--tblr-bg-surface);
+}
+
+/* Advisory tab: importer-written text is plain text with meaningful line structure (CVE list,
+   "## heading" blocks per CVE). It is NOT rendered as Markdown on purpose — it is untrusted
+   third-party input, and Markdown to HTML would mean |raw on external content (see SEC-002 in
+   _detail_row.html.twig). pre-wrap keeps the structure without any parsing; the capped height
+   keeps a 5k-character kernel bundle from burying the provenance data below it.
+
+   Tabler styles bare <pre> as a dark code block (near-white text on a dark surface). This is
+   body copy, not code, so both the colour and the scrollbar tint have to be reset explicitly —
+   overriding only the background leaves white-on-light text that is invisible in light mode. */
+.advisory-text {
+    max-block-size: 20rem;
+    overflow-y: auto;
+    padding: 0.75rem;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    background: var(--tblr-bg-surface-secondary);
+    color: var(--tblr-body-color);
+    --tblr-scrollbar-color: var(--tblr-body-color);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+/* A bare <summary> only shows its disclosure triangle while it stays display:list-item — any
+   utility class that switches it to block silently removes the affordance. Hence an explicit
+   chevron that rotates on open, plus link colouring, so "expandable" is never in doubt. */
+details.advisory-block > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    color: var(--tblr-primary);
+    font-weight: var(--tblr-font-weight-medium);
+    list-style: none;
+}
+
+details.advisory-block > summary::-webkit-details-marker {
+    display: none;
+}
+
+details.advisory-block > summary:hover {
+    text-decoration: underline;
+}
+
+.advisory-chevron {
+    flex: 0 0 auto;
+    transition: transform 0.15s ease-in-out;
+}
+
+details.advisory-block[open] > summary .advisory-chevron {
+    transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .advisory-chevron {
+        transition: none;
+    }
+}
+
+/* CVE and EPSS share one list column (#38); a solid rule separates the two values in the cell and
+   the two sort links in the header, so the number under a wrapped CVE id is not read as part of it.
+   Decorative only — the header's second line ("EPSS") already labels the value. */
+.cve-epss-divider {
+    border-block-start: 1px solid color-mix(in srgb, var(--tblr-secondary) 60%, transparent);
+    margin-block-start: 0.25rem;
+    padding-block-start: 0.25rem;
+}
+
+/* #80: user-resizable columns (column_resize_controller.js). Widths come from `--col-w` on the
+   header cells and only apply at xl and up — below it Bootstrap hides columns responsively and
+   fixed pixel widths would fight that. `!important` because `.w-1` on the select/id columns is.
+
+   `white-space`: Tabler keeps header labels on one line. A narrowed column needs them to wrap at
+   word boundaries (the controller's minimum width assumes exactly that) — and so does the untouched
+   table: with one-line headers the list set a minimum of 1.264 px and scrolled sideways below a
+   1.540 px window, e.g. 1.920 px at 125 % scaling. `.table` in the selector because Tabler's
+   `.table thead th` is more specific. */
+.table.table-resizable th {
+    position: relative;
+    white-space: normal;
+}
+
+/* Columns the table-scroll controller drops while the table would otherwise overflow its card —
+   "Entdeckt am" first, then "Software" (vulnerability list). A class on the table, not on the cells,
+   so rows re-rendered by a Turbo Stream follow without the controller noticing. `!important`
+   because the cells carry Bootstrap's `d-lg-table-cell` / `d-xl-table-cell`, which have it.
+   Cell class names must not start with `table-`/`bg-` or contain `col-`: Tabler 1.6 matches those
+   by attribute selector and drops the cell from `.table-striped`. */
+.table-collapse-discovered .collapsible-discovered,
+.table-collapse-software .collapsible-software {
+    display: none !important;
+}
+
+.column-resize-handle {
+    display: none;
+}
+
+@media (min-width: 1200px) {
+    .column-resize-handle {
+        display: block;
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: 0;
+        inline-size: 0.5rem;
+        cursor: col-resize;
+        touch-action: none;
+        border-inline-end: 2px solid transparent;
+    }
+
+    /* Hover cue in the secondary text colour: the plain border colour measured 1.2:1 against the
+       header and was effectively invisible. */
+    .table-resizable th:hover .column-resize-handle {
+        border-inline-end-color: var(--tblr-secondary);
+    }
+
+    .table-resizable th .column-resize-handle:hover,
+    .table-resizable th .column-resize-handle:focus-visible,
+    .table-resizable th .column-resize-handle.is-dragging {
+        /* Body colour, not primary: the primary blue measured 2.94:1 on the dark header. */
+        border-inline-end-color: var(--tblr-body-color);
+        outline: none;
+    }
+
+    .table-resizable.is-resized {
+        table-layout: fixed;
+    }
+
+    .table-resizable.is-resized th[style*="--col-w"] {
+        inline-size: var(--col-w) !important;
+    }
+
+    /* With fixed widths, content that cannot wrap (badges) would spill into the neighbouring
+       column. Clip instead — except the last (actions) column, whose dropdown menu must escape. */
+    .table-resizable.is-resized th,
+    .table-resizable.is-resized td:not(:last-child) {
+        overflow: hidden;
+    }
+
+    .table-resizable.is-resized td {
+        overflow-wrap: anywhere;
+    }
+}
+
+/* #80: top scrollbar mirroring the table's own (table_scroll_controller.js). The spacer only gives
+   the bar its scroll width; one pixel of height is enough for classic scrollbars, which add their
+   own height. The minimum height is for overlay scrollbars (macOS, headless Chromium): without it
+   the strip is 2 px tall and there is nothing to hover to reveal the bar. */
+.table-scroll-top {
+    overflow-x: auto;
+    overflow-y: hidden;
+    min-block-size: 0.75rem;
+    border-block-end: 1px solid var(--tblr-border-color);
+}
+
+.table-scroll-top__spacer {
+    block-size: 1px;
+}
+
+/* #124: Tabler's light-tint badges (`bg-*-lt`) set the text to the pure palette colour, which
+   misses WCAG AA (4.5:1 for 12 px text) in the light theme for most hues (yellow 1.98:1) and in the
+   dark theme for the dark ones (blue 2.69:1, `bg-dark-lt` 1:1 — "Closed" was invisible). Keep the
+   tinted background, derive the text from the same hue: darkened in the light theme, lightened in
+   the dark theme. Measured per colour in both themes (issue #124). `:root` lifts the specificity
+   above Tabler's own `!important` rule regardless of stylesheet order. */
+:root .bg-secondary-lt {
+    --lt-text-base: var(--tblr-secondary);
+}
+:root .bg-blue-lt {
+    --lt-text-base: var(--tblr-blue);
+}
+:root .bg-azure-lt {
+    --lt-text-base: var(--tblr-azure);
+}
+:root .bg-info-lt {
+    --lt-text-base: var(--tblr-info);
+}
+:root .bg-teal-lt {
+    --lt-text-base: var(--tblr-teal);
+}
+:root .bg-green-lt {
+    --lt-text-base: var(--tblr-green);
+}
+:root .bg-success-lt {
+    --lt-text-base: var(--tblr-success);
+}
+:root .bg-yellow-lt {
+    --lt-text-base: var(--tblr-yellow);
+}
+:root .bg-warning-lt {
+    --lt-text-base: var(--tblr-warning);
+}
+:root .bg-orange-lt {
+    --lt-text-base: var(--tblr-orange);
+}
+:root .bg-red-lt {
+    --lt-text-base: var(--tblr-red);
+}
+:root .bg-danger-lt {
+    --lt-text-base: var(--tblr-danger);
+}
+:root .bg-purple-lt {
+    --lt-text-base: var(--tblr-purple);
+}
+:root .bg-dark-lt {
+    --lt-text-base: var(--tblr-body-color);
+}
+
+:root .bg-secondary-lt,
+:root .bg-blue-lt,
+:root .bg-azure-lt,
+:root .bg-info-lt,
+:root .bg-teal-lt,
+:root .bg-green-lt,
+:root .bg-success-lt,
+:root .bg-yellow-lt,
+:root .bg-warning-lt,
+:root .bg-orange-lt,
+:root .bg-red-lt,
+:root .bg-danger-lt,
+:root .bg-purple-lt,
+:root .bg-dark-lt {
+    color: color-mix(in srgb, var(--lt-text-base) 60%, #000) !important;
+}
+
+[data-bs-theme="dark"] .bg-secondary-lt,
+[data-bs-theme="dark"] .bg-blue-lt,
+[data-bs-theme="dark"] .bg-azure-lt,
+[data-bs-theme="dark"] .bg-info-lt,
+[data-bs-theme="dark"] .bg-teal-lt,
+[data-bs-theme="dark"] .bg-green-lt,
+[data-bs-theme="dark"] .bg-success-lt,
+[data-bs-theme="dark"] .bg-yellow-lt,
+[data-bs-theme="dark"] .bg-warning-lt,
+[data-bs-theme="dark"] .bg-orange-lt,
+[data-bs-theme="dark"] .bg-red-lt,
+[data-bs-theme="dark"] .bg-danger-lt,
+[data-bs-theme="dark"] .bg-purple-lt,
+[data-bs-theme="dark"] .bg-dark-lt {
+    color: color-mix(in srgb, var(--lt-text-base) 55%, #fff) !important;
+}
+
+/* #124 (issue comment): secondary text on a tinted alert background measured 4.31–4.55:1 in the
+   light theme (below AA for the info/danger/success variants) — the dashboard banners use exactly
+   that. Darken it inside alerts only; the dark theme already passes (5.05–5.5:1). */
+:root:not([data-bs-theme="dark"]) .alert .text-secondary {
+    color: color-mix(in srgb, var(--tblr-secondary) 80%, #000) !important;
+}
+
+/* #202: the danger red reaches only 3.15:1 as small hint text on the dark card (light: 4.66:1).
+   Lighten it the #124 way for form hints; the vulnerability form's asset-group hints use it. */
+[data-bs-theme="dark"] .form-text.text-danger {
+    color: color-mix(in srgb, var(--tblr-danger) 55%, #fff) !important;
+}
+
+/* #208: the last import error stays one truncated line until opened, then wraps in place — on a
+   tablet the former title tooltip never showed the full text. Same disclosure pattern as
+   details.advisory-block: a flex summary loses the native triangle, so an explicit chevron rotates
+   instead; the text sits beside it and is truncated only while closed. */
+details.import-error > summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+details.import-error > summary::-webkit-details-marker {
+    display: none;
+}
+
+.import-error-chevron {
+    flex: 0 0 auto;
+    margin-block-start: 0.125rem;
+    transition: transform 0.15s ease-in-out;
+}
+
+details.import-error[open] .import-error-chevron {
+    transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .import-error-chevron {
+        transition: none;
+    }
+}
+
+.import-error-text {
+    min-inline-size: 0;
+    max-inline-size: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+details.import-error[open] .import-error-text {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}

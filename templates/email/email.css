@@ -1,0 +1,190 @@
+/*
+ * SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+ *
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+/* ── Reset ────────────────────────────────────────────────────────────────── */
+body, table, td, p, a, li, blockquote {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+table, td {
+    mso-table-lspace: 0pt;
+    mso-table-rspace: 0pt;
+    border-collapse: collapse !important;
+}
+img {
+    border: 0;
+    height: auto;
+    line-height: 100%;
+    outline: none;
+    text-decoration: none;
+    -ms-interpolation-mode: bicubic;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+body {
+    background-color: #f4f6fb;
+    margin: 0;
+    padding: 0;
+    width: 100% !important;
+    min-width: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1d273b;
+}
+
+/* ── Outer wrapper ────────────────────────────────────────────────────────── */
+table.body-wrap {
+    background-color: #f4f6fb;
+    width: 100%;
+    padding: 32px 0;
+}
+
+/* ── Container ────────────────────────────────────────────────────────────── */
+table.container {
+    background-color: #ffffff;
+    width: 600px !important;
+    margin: 0 auto;
+    border-radius: 6px;
+    border-spacing: 0;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+td.header-cell {
+    background-color: #066fd1;
+    padding: 24px 32px;
+    border-radius: 6px 6px 0 0;
+}
+p.header-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
+td.body-cell {
+    background-color: #ffffff;
+    padding: 32px;
+}
+
+p {
+    margin: 0 0 16px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1d273b;
+}
+p.intro {
+    margin-bottom: 24px;
+}
+p.outro {
+    font-size: 13px;
+    color: #626976;
+    margin-bottom: 0;
+}
+
+/* ── Detail card ──────────────────────────────────────────────────────────── */
+table.detail-card {
+    width: 100%;
+    border: 1px solid #e6eaf0;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    border-spacing: 0;
+}
+td.detail-card-label-cell {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e6eaf0;
+    background-color: #f8f9fc;
+}
+span.detail-card-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #626976;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+td.detail-card-body-cell {
+    padding: 20px;
+}
+p.vuln-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1d273b;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0 0 8px;
+}
+p.vuln-cve {
+    font-size: 13px;
+    color: #626976;
+    font-family: monospace, monospace;
+    margin: 0 0 12px;
+}
+table.meta-table {
+    margin-bottom: 12px;
+    border-spacing: 0;
+}
+td.meta-label {
+    font-size: 13px;
+    color: #626976;
+    font-family: Arial, Helvetica, sans-serif;
+    padding-right: 16px;
+    white-space: nowrap;
+    vertical-align: top;
+}
+td.meta-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d273b;
+    font-family: Arial, Helvetica, sans-serif;
+    vertical-align: top;
+}
+p.vuln-description {
+    font-size: 13px;
+    color: #626976;
+    line-height: 1.6;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 12px 0 0;
+}
+
+/* ── CTA button ───────────────────────────────────────────────────────────── */
+table.btn-table {
+    width: 100%;
+    margin-bottom: 24px;
+    border-spacing: 0;
+}
+td.btn-cell {
+    text-align: center;
+    padding: 0;
+}
+a.btn {
+    display: inline-block;
+    background-color: #066fd1;
+    color: #ffffff !important;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    mso-padding-alt: 0;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+td.footer-cell {
+    padding: 16px 32px;
+    border-top: 1px solid #e6eaf0;
+    background-color: #f8f9fc;
+    border-radius: 0 0 6px 6px;
+}
+p.footer-text {
+    font-size: 12px;
+    color: #939ba7;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+}

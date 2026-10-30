@@ -1,0 +1,140 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'import_status.title'|trans }} - OdinShield{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h1 class="page-title">{{ 'import_status.title'|trans }}</h1>
+                <div class="text-secondary mt-1">{{ 'import_status.subtitle'|trans }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="table-responsive import-status-scroll">
+        <table class="table card-table table-vcenter">
+            <thead>
+                <tr>
+                    <th>{{ 'import_status.source'|trans }}</th>
+                    <th>{{ 'import_status.status'|trans }}</th>
+                    <th>{{ 'import_status.last_fetch'|trans }}</th>
+                    <th>{{ 'import_status.last_success'|trans }}</th>
+                    <th>{{ 'import_status.imported_total'|trans }}</th>
+                    <th>{{ 'import_status.documents'|trans({'%days%': recent_days}) }}</th>
+                    <th>{{ 'import_status.last_error'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if sources|filter(source => source.sourceType == 'csaf') is empty %}
+                    <tr>
+                        <td colspan="7" class="text-secondary">{{ 'import_status.no_csaf_source'|trans }}</td>
+                    </tr>
+                {% endif %}
+                {% for source in sources %}
+                    <tr>
+                        <td>
+                            <div>{{ source.displayName }}</div>
+                            <div class="text-muted small">
+                                {{ ('import_status.source_type.' ~ source.sourceType)|trans }} · {{ source.key }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ source.status.color() }}-lt">{{ ('csaf_provider_status.' ~ source.status.value)|trans }}</span>
+                            {% if source.readsNothing %}
+                                {# #319: runs succeed, the feeds list documents, nothing is read — the shape of #313. #}
+                                <span class="badge bg-danger-lt">{{ 'import_status.reads_nothing'|trans }}</span>
+                                <div class="text-danger small">{{ 'import_status.reads_nothing_hint'|trans({'%count%': source.ledger.recentFeedEntries, '%days%': recent_days}) }}</div>
+                            {% endif %}
+                            {% if source.consecutiveFailures > 0 %}
+                                <div class="text-muted small">{{ 'import_status.consecutive_failures'|trans({'%count%': source.consecutiveFailures}) }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if source.lastFetchedAt %}
+                                {{ source.lastFetchedAt|format_datetime(dateFormat='short', timeFormat='short') }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if source.lastSuccessAt %}
+                                {{ source.lastSuccessAt|format_datetime(dateFormat='short', timeFormat='short') }}
+                            {% else %}
+                                <span class="text-muted">{{ 'import_status.never_ran'|trans }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if source.advisoriesImportedTotal is not null %}
+                                {{ source.advisoriesImportedTotal|format_number }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if source.ledger %}
+                                {% set ledger = source.ledger %}
+                                <div>{{ 'import_status.documents_handled'|trans({'%handled%': ledger.handledRecently|format_number, '%processed%': ledger.processedRecently|format_number}) }}</div>
+                                {% if ledger.recentFeedEntries is not null %}
+                                    <div class="text-muted small">{{ 'import_status.documents_listed'|trans({'%count%': ledger.recentFeedEntries}) }}</div>
+                                {% endif %}
+                                {% if ledger.pending %}
+                                    <div class="text-muted small">{{ 'import_status.documents_pending'|trans({'%count%': ledger.pending}) }}</div>
+                                {% endif %}
+                                {% if ledger.failing > 0 %}
+                                    <div class="text-warning small">{{ 'import_status.documents_failing'|trans({'%count%': ledger.failing}) }}</div>
+                                {% endif %}
+                                {% if ledger.givenUp > 0 %}
+                                    <details class="text-danger small">
+                                        <summary>{{ 'import_status.documents_given_up'|trans({'%count%': ledger.givenUp}) }}</summary>
+                                        <ul class="list-unstyled mb-0">
+                                            {% for document in ledger.givenUpDocuments %}
+                                                <li class="text-break">
+                                                    {{ document.url }}
+                                                    {% if document.lastError %}<span class="text-muted">— {{ document.lastError }}</span>{% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </details>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if source.lastErrorMessage %}
+                                <details class="import-error text-danger">
+                                    <summary>
+                                        {# Tabler "chevron-right" #}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round" class="icon import-error-chevron" aria-hidden="true">
+                                            <path d="M9 6l6 6l-6 6"/>
+                                        </svg>
+                                        <span class="import-error-text">{{ source.lastErrorMessage }}</span>
+                                    </summary>
+                                </details>
+                                {% if source.lastErrorAt %}
+                                    <div class="text-muted small">{{ source.lastErrorAt|format_datetime(dateFormat='short', timeFormat='short') }}</div>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer text-secondary small">{{ 'import_status.read_only_hint'|trans }}</div>
+</div>
+{% endblock %}

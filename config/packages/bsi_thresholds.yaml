@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# BSI-CS 093 dashboard thresholds.
+# See: https://www.bsi.bund.de/ (BSI-CS 093)
+
+parameters:
+    # Days before end-of-support where software starts appearing in the warning widget.
+    app.bsi.eos_warn_days: 90
+
+    # Days after which manually-updated software with no review is considered stale (BSI §5.3).
+    app.bsi.review_stale_days: 30

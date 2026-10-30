@@ -1,0 +1,42 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import field_errors %}
+<div class="card mb-3">
+    <div class="card-header flex-column align-items-start">
+        <h3 class="card-title">{{ 'software.successor.section.asset_groups'|trans }}</h3>
+        <p class="text-secondary mb-0 small">{{ 'software.successor.section.asset_groups_help'|trans }}</p>
+    </div>
+    <div class="list-group list-group-flush">
+        {% for assetGroup in asset_groups %}
+            {% set field_name = 'ag_choice_' ~ assetGroup.id %}
+            {% if form[field_name] is defined %}
+                <div class="list-group-item">
+                    <div class="row align-items-center g-2">
+                        <div class="col-md-5">
+                            <div class="fw-bold">{{ assetGroup.name }}</div>
+                            <div class="text-secondary small">{{ assetGroup.assetType.name }}</div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="btn-group btn-group-sm w-100" role="group" aria-label="{{ assetGroup.name }}">
+                                {% for child in form[field_name] %}
+                                    <input type="radio" class="btn-check"
+                                           name="{{ child.vars.full_name }}"
+                                           id="{{ child.vars.id }}"
+                                           value="{{ child.vars.value }}"
+                                           autocomplete="off"
+                                           {% if child.vars.checked %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary" for="{{ child.vars.id }}">
+                                        {{ child.vars.label|trans }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            {{ field_errors(form[field_name]) }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>

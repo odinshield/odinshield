@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+_security_logout:
+    resource: security.route_loader.logout
+    type: service

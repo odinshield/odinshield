@@ -1,0 +1,241 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% macro sort_link(label, column, sort, direction, search, limit, filter) %}
+    {% set next_direction = (sort == column and direction == 'asc') ? 'desc' : 'asc' %}
+    <a href="{{ path('app_user_index', {'sort': column, 'direction': next_direction, 'search': search, 'limit': limit, 'filter': filter, 'page': 1}) }}"
+       class="text-reset text-decoration-none fw-bold d-flex align-items-center gap-1">
+        {{ label }}
+        {% if sort == column %}
+            {% if direction == 'asc' %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M6 15l6 -6l6 6"/></svg>
+            {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M6 9l6 6l6 -6"/></svg>
+            {% endif %}
+        {% else %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon text-muted"><path d="M6 9l6 -6l6 6"/><path d="M6 15l6 6l6 -6"/></svg>
+        {% endif %}
+    </a>
+{% endmacro %}
+
+
+{% block title %}{{ 'user.title'|trans }} - OdinShield{% endblock %}
+
+{% block container_class %}container-fluid{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="{{ block('container_class') }}">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h1 class="page-title">{{ 'user.title'|trans }}</h1>
+            </div>
+            <div class="col-auto ms-auto">
+                <a id="new-user-link" href="{{ path('app_user_new', {'search': search, 'filter': filter, 'limit': limit, 'sort': sort, 'direction': direction, 'page': page}) }}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M12 5l0 14"/>
+                        <path d="M5 12l14 0"/>
+                    </svg>
+                    {{ 'user.new'|trans }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div data-controller="remote-modal"
+     data-remote-modal-loading-text-value="{{ 'common.loading'|trans }}"
+     data-remote-modal-error-text-value="{{ 'common.load_error'|trans }}">
+
+{% include '_include/_remote_modal.html.twig' with {
+    modal_id: 'userDetailModal',
+    primary_label: 'common.edit'
+} %}
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" action="{{ path('app_user_index') }}" class="d-flex flex-wrap gap-2 w-100 justify-content-between"
+              data-turbo-frame="user-table"
+              data-controller="index-filter"
+              data-index-filter-table-id-value="user-table"
+              data-index-filter-new-link-id-value="new-user-link">
+            <select name="limit" class="form-select w-auto" aria-label="{{ 'common.per_page_label'|trans }}" data-action="change->index-filter#submitForm">
+                {% for option in [10, 25, 50, 75, 100] %}
+                    <option value="{{ option }}" {% if option == limit %}selected{% endif %}>
+                        {{ option }} {{ 'common.per_page'|trans }}
+                    </option>
+                {% endfor %}
+            </select>
+            <div class="d-flex flex-wrap gap-2">
+            <div class="input-group input-group-flat" style="width: 280px;">
+                <input type="text" name="search" id="search-input" value="{{ search }}" class="form-control" aria-label="{{ 'common.search_label'|trans }}"
+                       placeholder="{{ 'common.search_placeholder'|trans }}"
+                       data-index-filter-target="searchInput"
+                       data-action="input->index-filter#toggleClear">
+                <span class="input-group-text gap-1">
+                    <button type="button" id="search-clear" aria-label="{{ 'common.clear_search'|trans }}"
+                            class="btn btn-sm btn-ghost-secondary p-0 border-0 {% if not search %}d-none{% endif %}"
+                            data-index-filter-target="searchClear"
+                            data-action="click->index-filter#clearSearch">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon">
+                            <path d="M18 6l-12 12"/>
+                            <path d="M6 6l12 12"/>
+                        </svg>
+                    </button>
+                    <button type="submit" class="btn btn-sm btn-ghost-secondary p-0 border-0" aria-label="{{ 'common.search_label'|trans }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon">
+                            <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/>
+                            <path d="M21 21l-6 -6"/>
+                        </svg>
+                    </button>
+                </span>
+            </div>
+            <input type="hidden" id="filter-input" name="filter" value="{{ filter }}">
+            <div class="dropdown">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon me-1">
+                        <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 -2v-5l-4.414 -4.414a2 2 0 0 1 -.586 -1.414v-2.172z"/>
+                    </svg>
+                    <span id="filter-label">{{ ('user.filter.' ~ filter)|trans }}</span>
+                </button>
+                <div class="dropdown-menu">
+                    {% for value in ['all', 'active', 'inactive'] %}
+                        <a href="{{ path('app_user_index', {'filter': value, 'search': search, 'limit': limit, 'sort': sort, 'direction': direction, 'page': 1}) }}"
+                           class="dropdown-item {% if filter == value %}active{% endif %}"
+                           data-turbo-frame="user-table"
+                           data-filter-value="{{ value }}"
+                           data-action="index-filter#selectFilter"
+                           data-index-filter-input-id-param="filter-input"
+                           data-index-filter-label-id-param="filter-label"
+                           data-index-filter-filter-value-param="{{ value }}">
+                            {{ ('user.filter.' ~ value)|trans }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            </div>
+        </form>
+    </div>
+    <turbo-frame id="user-table" data-turbo-action="advance">
+    <div class="card-table">
+        {% if users|length > 0 %}
+        <table class="table table-vcenter table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>{{ _self.sort_link('user.field.username'|trans, 'username', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.email'|trans, 'email', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.first_name'|trans, 'firstName', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.last_name'|trans, 'lastName', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ 'user.field.roles'|trans }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.is_active'|trans, 'isActive', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.last_login_at'|trans, 'lastLoginAt', sort, direction, search, limit, filter) }}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td class="text-secondary d-none d-md-table-cell">{{ user.email }}</td>
+                    <td class="d-none d-md-table-cell">{{ user.firstName }}</td>
+                    <td class="d-none d-md-table-cell">{{ user.lastName }}</td>
+                    <td class="d-none d-md-table-cell">
+                        <div style="max-width: 160px; display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                        {% set display_roles = user.roles|filter(r => r != 'ROLE_USER') %}
+                        {% if display_roles is empty %}
+                            <span class="badge bg-blue-lt">{{ 'user.role.user'|trans }}</span>
+                        {% else %}
+                            {% for role in display_roles %}
+                                <span class="badge bg-blue-lt">{{ ('user.role.' ~ role|lower|replace({'role_': ''}))|trans }}</span>
+                            {% endfor %}
+                        {% endif %}
+                        </div>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                        {% if user.isActive %}
+                            <span class="badge bg-green-lt">{{ 'common.yes'|trans }}</span>
+                        {% else %}
+                            <span class="badge bg-red-lt">{{ 'common.no'|trans }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-secondary d-none d-md-table-cell">
+                        {{ user.lastLoginAt ? user.lastLoginAt|format_datetime(dateFormat='short', timeFormat='short') : '—' }}
+                    </td>
+                    <td class="text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-ghost-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                                    aria-label="{{ 'common.actions_for'|trans({'%name%': user.username}) }}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round" class="icon">
+                                    <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                                    <path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                                    <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end dropdown-menu-sm">
+                                <a href="{{ path('app_user_show', {'uuid': user.uuid, 'search': search, 'filter': filter, 'limit': limit, 'sort': sort, 'direction': direction, 'page': page}) }}"
+                                   class="dropdown-item"
+                                   data-action="remote-modal#open"
+                                   data-remote-modal-url-param="{{ path('app_user_modal', {'uuid': user.uuid}) }}"
+                                   data-remote-modal-primary-url-param="{{ path('app_user_edit', {'uuid': user.uuid, 'search': search, 'filter': filter, 'limit': limit, 'sort': sort, 'direction': direction, 'page': page}) }}"
+                                   data-remote-modal-title-param="{{ user.firstName }} {{ user.lastName }}">
+                                    {{ 'common.show'|trans }}
+                                </a>
+                                <a href="{{ path('app_user_edit', {'uuid': user.uuid, 'search': search, 'filter': filter, 'limit': limit, 'sort': sort, 'direction': direction, 'page': page}) }}"
+                                   class="dropdown-item" data-turbo-frame="_top">
+                                    {{ 'common.edit'|trans }}
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>{{ _self.sort_link('user.field.username'|trans, 'username', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.email'|trans, 'email', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.first_name'|trans, 'firstName', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.last_name'|trans, 'lastName', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ 'user.field.roles'|trans }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.is_active'|trans, 'isActive', sort, direction, search, limit, filter) }}</th>
+                    <th class="d-none d-md-table-cell">{{ _self.sort_link('user.field.last_login_at'|trans, 'lastLoginAt', sort, direction, search, limit, filter) }}</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <div class="text-center text-secondary py-4">
+            {% if search != '' or filter != 'all' %}
+                {{ 'user.no_records_filtered'|trans }}
+                <a href="{{ path('app_user_index') }}" class="d-block mt-2 small">{{ 'common.reset_filters'|trans }}</a>
+            {% else %}
+                {{ 'user.no_records'|trans }}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% include '_include/_pagination.html.twig' with {
+        route: 'app_user_index',
+        query_params: {'search': search, 'limit': limit, 'filter': filter, 'sort': sort, 'direction': direction},
+    } %}
+    </turbo-frame>
+</div>
+
+</div>
+{% endblock %}

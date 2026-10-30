@@ -1,0 +1,51 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'software.edit'|trans }} - OdinShield{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <a href="{{ return_to_show ? path('app_software_show', {'uuid': software.uuid}|merge(return_params)) : path('app_software_index', return_params) }}" class="btn btn-ghost-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M15 6l-6 6l6 6"/>
+                    </svg>
+                    {{ (return_to_show ? 'common.back_to_detail' : 'software.back_to_list')|trans }}
+                </a>
+            </div>
+            <div class="col">
+                <h1 class="page-title">{{ 'software.edit'|trans }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            {{ include('software/_form.html.twig', {'button_label': 'software.update', 'is_new': false}) }}
+        </div>
+        {# modal outside the Live Component so its <form> does not nest inside the SoftwareForm <form>.
+           Only rendered for users allowed to create vendors — mirrors SoftwareVoter::MODIFY_BYPASS. #}
+        {% if is_granted('ROLE_SOFTWARE_OWNER') or is_granted('ROLE_ISB') %}
+            <div class="modal modal-blur fade" id="modal-vendor-quick-create" tabindex="-1"
+                 data-controller="modal-close">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        {{ component('VendorQuickCreateForm') }}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

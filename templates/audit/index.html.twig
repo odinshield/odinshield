@@ -1,0 +1,234 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% from '_include/_audit_entry.html.twig' import audit_diffs, action_badge, object_link %}
+
+{% macro funnel_icon() %}
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+         stroke-linejoin="round" class="icon me-1">
+        <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 -2v-5l-4.414 -4.414a2 2 0 0 1 -.586 -1.414v-2.172z"/>
+    </svg>
+{% endmacro %}
+
+{% block title %}{{ 'audit_timeline.title'|trans }} - OdinShield{% endblock %}
+
+{% block container_class %}container-fluid{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="{{ block('container_class') }}">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h1 class="page-title">{{ 'audit_timeline.title'|trans }}</h1>
+                <div class="text-secondary mt-1">{{ 'audit_timeline.subtitle'|trans }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+{% set has_filter = params.action != 'all' or params.entity_type != 'all' or params.user != 'all' or params.date_from or params.date_to %}
+<div class="card">
+    <div class="card-header">
+        <form method="get" action="{{ path('app_audit_index') }}" class="w-100" data-controller="index-filter">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <select name="limit" class="form-select w-auto" aria-label="{{ 'common.per_page_label'|trans }}" data-action="change->index-filter#submitForm">
+                    {% for option in limits %}
+                        <option value="{{ option }}" {% if option == params.limit %}selected{% endif %}>
+                            {{ option }} {{ 'common.per_page'|trans }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="d-flex align-items-center gap-2">
+                    {% if has_filter %}
+                        <a href="{{ path('app_audit_index') }}" class="btn btn-link text-secondary">{{ 'common.reset_filters'|trans }}</a>
+                    {% endif %}
+                    {# data-turbo="false": Turbo would try to render the CSV as a page instead of downloading it. #}
+                    <a href="{{ path('app_audit_export', query_params) }}" class="btn btn-outline-secondary" data-turbo="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon me-1">
+                            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/>
+                            <path d="M7 11l5 5l5 -5"/>
+                            <path d="M12 4l0 12"/>
+                        </svg>
+                        {{ 'audit_timeline.export.button'|trans }}
+                    </a>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap align-items-center justify-content-end">
+                {# Action filter #}
+                <input type="hidden" id="action-input" name="action" value="{{ params.action }}">
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ _self.funnel_icon() }}
+                        <span id="action-label">{{ params.action == 'all' ? 'audit_timeline.filter.all_actions'|trans : ('audit.action.' ~ params.action)|trans }}</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" class="dropdown-item {% if params.action == 'all' %}active{% endif %}"
+                           data-action="index-filter#selectFilter"
+                           data-index-filter-input-id-param="action-input"
+                           data-index-filter-label-id-param="action-label"
+                           data-index-filter-filter-value-param="all">{{ 'audit_timeline.filter.all_actions'|trans }}</a>
+                        {% for a in actions %}
+                            <a href="#" class="dropdown-item {% if params.action == a %}active{% endif %}"
+                               data-action="index-filter#selectFilter"
+                               data-index-filter-input-id-param="action-input"
+                               data-index-filter-label-id-param="action-label"
+                               data-index-filter-filter-value-param="{{ a }}">{{ ('audit.action.' ~ a)|trans }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {# Entity-type filter #}
+                <input type="hidden" id="entity-type-input" name="entity_type" value="{{ params.entity_type }}">
+                <div class="dropdown">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ _self.funnel_icon() }}
+                        <span id="entity-type-label">{{ params.entity_type == 'all' ? 'audit_timeline.filter.all_types'|trans : ('audit.entity.' ~ params.entity_type)|trans }}</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" class="dropdown-item {% if params.entity_type == 'all' %}active{% endif %}"
+                           data-action="index-filter#selectFilter"
+                           data-index-filter-input-id-param="entity-type-input"
+                           data-index-filter-label-id-param="entity-type-label"
+                           data-index-filter-filter-value-param="all">{{ 'audit_timeline.filter.all_types'|trans }}</a>
+                        {% for slug in entity_types %}
+                            <a href="#" class="dropdown-item {% if params.entity_type == slug %}active{% endif %}"
+                               data-action="index-filter#selectFilter"
+                               data-index-filter-input-id-param="entity-type-input"
+                               data-index-filter-label-id-param="entity-type-label"
+                               data-index-filter-filter-value-param="{{ slug }}">{{ ('audit.entity.' ~ slug)|trans }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {# User filter (searchable) #}
+                <input type="hidden" id="user-input" name="user" value="{{ params.user }}">
+                <div class="dropdown" data-action="hidden.bs.dropdown->index-filter#resetDropdown">
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                            data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                            style="min-width: 10rem; max-width: 16rem; justify-content: flex-start;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon me-1 flex-shrink-0">
+                            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/>
+                            <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/>
+                        </svg>
+                        <span id="user-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">{{ params.user == 'all' ? 'audit_timeline.filter.all_users'|trans : params.user }}</span>
+                    </button>
+                    <div class="dropdown-menu pt-0" style="min-width: 220px;">
+                        <div class="p-2 border-bottom">
+                            <input type="text" class="form-control form-control-sm"
+                                   placeholder="{{ 'common.search_placeholder'|trans }}"
+                                   autocomplete="off"
+                                   data-action="input->index-filter#searchDropdown">
+                        </div>
+                        <div class="overflow-auto" style="max-height: 12rem;">
+                            <a href="#" class="dropdown-item {% if params.user == 'all' %}active{% endif %}"
+                               data-action="index-filter#selectFilter"
+                               data-index-filter-input-id-param="user-input"
+                               data-index-filter-label-id-param="user-label"
+                               data-index-filter-filter-value-param="all">{{ 'audit_timeline.filter.all_users'|trans }}</a>
+                            {% for username in users %}
+                                <a href="#" class="dropdown-item {% if params.user == username %}active{% endif %}"
+                                   data-action="index-filter#selectFilter"
+                                   data-index-filter-input-id-param="user-input"
+                                   data-index-filter-label-id-param="user-label"
+                                   data-index-filter-filter-value-param="{{ username }}">{{ username }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {# Date range #}
+                <input type="date" name="date_from" value="{{ params.date_from }}" class="form-control w-auto"
+                       aria-label="{{ 'audit_timeline.filter.date_from'|trans }}"
+                       data-action="change->index-filter#submitForm">
+                <span class="text-secondary">–</span>
+                <input type="date" name="date_to" value="{{ params.date_to }}" class="form-control w-auto"
+                       aria-label="{{ 'audit_timeline.filter.date_to'|trans }}"
+                       data-action="change->index-filter#submitForm">
+            </div>
+        </form>
+    </div>
+    {% if items is empty %}
+        <div class="card-body">
+            <div class="empty">
+                <p class="empty-title">{{ has_filter ? 'audit_timeline.empty_filtered'|trans : 'audit_timeline.empty'|trans }}</p>
+                {% if has_filter %}
+                    <div class="empty-action">
+                        <a href="{{ path('app_audit_index') }}" class="btn btn-primary">{{ 'common.reset_filters'|trans }}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="card-table">
+            <table class="table table-vcenter">
+                <thead>
+                    <tr>
+                        <th>{{ 'audit_timeline.col.time'|trans }}</th>
+                        <th>{{ 'audit_timeline.col.object_type'|trans }}</th>
+                        <th>{{ 'audit_timeline.col.action'|trans }}</th>
+                        <th>{{ 'audit_timeline.col.object'|trans }}</th>
+                        <th>{{ 'audit_timeline.col.user'|trans }}</th>
+                        <th class="w-1"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        {% set entry = item.entry %}
+                        {% set has_diffs = entry.getDiffs() is not empty %}
+                        {# #206: the chevron button is the control — a clickable <tr role="button"> was not
+                           reachable by keyboard and broke the table semantics. #}
+                        <tr{% if has_diffs %} class="audit-row"{% endif %}>
+                            <td class="text-nowrap text-secondary">{{ entry.createdAt ? entry.createdAt|format_datetime(dateFormat='short', timeFormat='short') : '—' }}</td>
+                            <td><span class="badge bg-blue-lt">{{ ('audit.entity.' ~ item.entity_type)|trans }}</span></td>
+                            <td>{{ action_badge(entry.type) }}</td>
+                            <td>{{ object_link(item.class, entry.objectId) }}</td>
+                            <td>{{ entry.username ?? '—' }}</td>
+                            <td class="text-end">
+                                {% if has_diffs %}
+                                    <button type="button" class="btn btn-sm btn-ghost-secondary btn-icon audit-toggle"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#audit-detail-{{ loop.index }}"
+                                            aria-expanded="false"
+                                            aria-controls="audit-detail-{{ loop.index }}"
+                                            aria-label="{{ 'audit_timeline.toggle_details'|trans }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round" class="icon audit-chevron" aria-hidden="true">
+                                            <path d="M9 6l6 6l-6 6"/>
+                                        </svg>
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if has_diffs %}
+                            <tr class="audit-detail-row">
+                                <td colspan="6" class="p-0">
+                                    <div class="collapse" id="audit-detail-{{ loop.index }}">
+                                        <div class="p-3">{{ audit_diffs(entry, item.class) }}</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+    {% include '_include/_pagination.html.twig' with {
+        route: 'app_audit_index',
+        query_params: query_params,
+        page: page,
+        pages: pages,
+        from: from,
+        to: to,
+        total: total,
+    } %}
+</div>
+{% endblock %}

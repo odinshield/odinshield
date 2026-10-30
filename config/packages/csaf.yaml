@@ -1,0 +1,83 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+parameters:
+    app.csaf.bsi_provider_metadata_url: 'https://wid.cert-bund.de/.well-known/csaf/provider-metadata.json'
+    # BSI aggregator listing other CSAF Trusted Providers (Red Hat, Siemens, Schneider,
+    # ABB, SICK, …). Read on every import run by AggregatorExpander to register newly
+    # accredited providers as CsafProviderState rows. This is a different document from
+    # bsi_provider_metadata_url (the latter is BSI's own provider feed).
+    app.csaf.bsi_aggregator_url: 'https://wid.cert-bund.de/.well-known/csaf-aggregator/aggregator.json'
+    # Issue #319: the document ledger's horizon. Every run reads the feeds back this many days and
+    # handles each entry that has no record, a newer stamp than its record, or a failed last
+    # attempt; records older than the horizon are pruned at the end of a run. Also the reach of a
+    # provider's first run (formerly fetch_window_initial_days).
+    app.csaf.ledger_retention_days: 90
+    # Issue #319: how often a failing document is retried before the import gives up on it. A
+    # given-up document is logged and listed on /import-status; a republished version (newer feed
+    # stamp) starts again at one attempt.
+    app.csaf.max_document_attempts: 5
+    app.csaf.failure_threshold: 3
+    # Issue #63: how often to re-notify while a provider stays auto-paused. Deliberately not the
+    # run interval — with `0 3,15 * * *` that would be two mails a day per broken provider, i.e.
+    # new noise instead of a fix. Before this, the circuit breaker mailed exactly once and then
+    # went quiet for good; on Demo that left provider ABB dead for 74 days.
+    # Override per stage with `CSAF_PAUSE_REMINDER_DAYS` — how often someone wants to be nagged is
+    # an operations decision, not a property of the image (a demo stage may want silence where
+    # production wants a weekly reminder). Read on every run, so no restart is needed.
+    app.csaf.pause_reminder_days_default: 7
+    # The processors read right to left: `default` first, so an env var that is set but
+    # EMPTY falls back to the parameter, and only then is the result cast. The other way
+    # round — `default:…:int:VAR` — the cast runs first and dies on an empty string with
+    # "Non-numeric env var cannot be cast to int", taking the whole command with it.
+    # compose.deploy.yaml passes `${CSAF_PAUSE_REMINDER_DAYS:-}`, i.e. always set, empty when unconfigured.
+    app.csaf.pause_reminder_days: '%env(int:default:app.csaf.pause_reminder_days_default:CSAF_PAUSE_REMINDER_DAYS)%'
+    app.csaf.http_timeout_seconds: 30
+    # Minimum severity for CSAF imports. Advisories whose CVSS-derived severity is below
+    # this level are counted as skipped and never imported. Allowed values match the
+    # VulnerabilitySeverity enum keys: 'critical', 'high', 'medium', 'low', 'informational'.
+    # Set to 'informational' to import everything. Default 'medium' filters away Low- and
+    # Informational-rated noise so only items at CVSS ≥ 4.0 enter the inventory.
+    app.csaf.min_severity: 'medium'
+    app.csaf.batch_flush_size: 50
+    # Issue #98: how many documents a single provider may consume in one run. Red Hat changed
+    # between 32 and 3.149 documents a day in the week to 2026-09-16, Schneider Electric about 15 —
+    # without a cap, one provider can occupy a whole run and the others never get their turn.
+    # Pending documents are taken oldest first (#169); everything past the cap has no new ledger
+    # record and stays pending (#319), so nothing is lost, only deferred to the next run. Set to 0
+    # to disable the cap.
+    #
+    # 750 per run (1.500 a day on two runs) is below Red Hat's peak days: such a day is caught up
+    # over the following runs, not within the day. A normal provider never comes close to the cap.
+    app.csaf.max_documents_per_provider_run: 750
+    # Issue #98: directory distributions that are deliberately not read, matched as a substring of
+    # the directory URL. Red Hat offers `…/data/csaf/v2/advisories/` and `…/data/csaf/v2/vex/`;
+    # the VEX directory is the bigger one (38.082 documents in a 90-day window against 25.288) and
+    # states mostly that a product is NOT affected. Until #57 evaluates `known_not_affected`, that
+    # is a lot of transfer for information the importer cannot act on. Remove the entry to read it.
+    app.csaf.skipped_directory_segments:
+        - '/csaf/v2/vex/'
+    # Issue #319 (O8 a): providers the aggregator registers as Disabled instead of Enabled. Red Hat
+    # changes up to 3.149 documents a day, almost all pure rebuilds that still cost a download each,
+    # and its products are relationship products the matcher does not read (D9) — on every instance
+    # checked it imported nothing while taking the whole run budget. An operator with Red Hat
+    # inventory enables it with `odinshield:csaf:provider-toggle enable security_access_redhat_com`.
+    # Applies to new registrations only; an existing provider keeps its status.
+    app.csaf.registered_disabled:
+        - 'security_access_redhat_com'
+    # Decoding a single BSI WID ROLIE feed (~38 MB JSON, ~12k entries) needs ~300 MB.
+    # Bumped on the runner-process level so both --sync and async-message runs work without
+    # the operator having to pass `-d memory_limit=…` manually. Set to empty string to skip.
+    app.csaf.memory_limit: '512M'
+    app.csaf.admin_email: '%env(default::CSAF_ADMIN_EMAIL)%'
+    # Cron expression for the scheduled CSAF import. Standard 5-field cron syntax in UTC.
+    # The schedule is pinned to UTC in CsafImportSchedule::getSchedule(), so the
+    # expression is interpreted in UTC **regardless of the container's TZ env var**.
+    # Override per stage by setting `CSAF_SCHEDULE_CRON` in the environment; leave the
+    # env empty/unset to fall back to the default below. Symfony Scheduler reads the
+    # schedule at worker boot, so changes need `docker compose restart php worker` to
+    # take effect. Validate via `bin/console debug:scheduler csaf` before restarting —
+    # an invalid expression crashes the worker on start-up.
+    app.csaf.schedule_cron_default: '0 3,15 * * *'
+    app.csaf.schedule_cron: '%env(default:app.csaf.schedule_cron_default:CSAF_SCHEDULE_CRON)%'

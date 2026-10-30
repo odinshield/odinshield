@@ -1,0 +1,235 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'dashboard.title'|trans }} - OdinShield{% endblock %}
+
+{% block head_meta %}<meta name="turbo-cache-control" content="no-preview">{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col">
+                <h1 class="page-title">{{ 'dashboard.title'|trans }}</h1>
+                <div class="text-secondary mt-1">{{ 'dashboard.subtitle'|trans }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+{# Issue #63: shown to ISB and admin only — the controller hands over null for everyone else. #}
+{% if source_health %}
+    {{ include('_include/_source_health_banner.html.twig', {'source_health': source_health, 'show_import_status_link': show_import_status_link}) }}
+{% endif %}
+{# Issue #223: ISB and admin only — null for everyone else and when the installation is current. #}
+{% if available_update %}
+    {{ include('_include/_update_banner.html.twig', {'available_update': available_update}) }}
+{% endif %}
+{# Issue #66: ISB and admin only — the controller hands over null for everyone else, and also
+   when nothing is unassigned, so no "0 objects" banner is left behind. #}
+{% if unassigned %}
+    {{ include('_include/_unassigned_banner.html.twig', {'unassigned': unassigned}) }}
+{% endif %}
+<div class="row row-deck row-cards">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">{{ 'dashboard.chart.title'|trans }}</h2>
+                    <div class="card-subtitle text-muted small">
+                        {{ 'dashboard.chart.subtitle'|trans({
+                            '%previous%': monthly_chart_previous_year,
+                            '%current%': monthly_chart_current_year,
+                        }) }}
+                    </div>
+                </div>
+            </div>
+            {# #207 (UX-39): the canvas is one image to a screen reader; the figures it draws are
+               repeated in a visually hidden table. chart-theme follows the colour theme. #}
+            <div class="card-body" data-controller="chart-theme">
+                {{ render_chart(monthly_chart, {
+                    'style': 'height: 280px;',
+                    'role': 'img',
+                    'aria-label': 'dashboard.chart.aria_label'|trans,
+                }) }}
+                {% set chart_data = monthly_chart.data %}
+                <table class="visually-hidden">
+                    <caption>{{ 'dashboard.chart.title'|trans }}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ 'dashboard.chart.table_month'|trans }}</th>
+                            {% for dataset in chart_data.datasets %}
+                                <th scope="col">{{ dataset.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for month in 1..12 %}
+                            <tr>
+                                <th scope="row">{{ ('2000-' ~ month ~ '-01')|format_date(pattern: 'MMMM') }}</th>
+                                {% for dataset in chart_data.datasets %}
+                                    <td>{{ dataset.data[month - 1] ?? 0 }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="subheader">{{ 'dashboard.card.open_vulnerabilities'|trans }}</div>
+                <div class="row mt-2">
+                    <div class="col-6 border-end">
+                        <a href="{{ path('app_vulnerability_index', {status: 'active'}) }}" class="text-reset text-decoration-none d-block">
+                            <div class="text-muted small">{{ 'dashboard.scope.global'|trans }}</div>
+                            <div class="h1 mb-0">{{ open_total }}</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ path('app_vulnerability_index', {status: 'active', assignee: 'me'}) }}" class="text-reset text-decoration-none d-block">
+                            <div class="text-muted small">{{ 'dashboard.scope.mine'|trans }}</div>
+                            <div class="h1 mb-0">{{ open_mine }}</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-start border-2 border-danger">
+            <div class="card-body">
+                <div class="subheader">{{ 'dashboard.card.critical'|trans }}</div>
+                {# #65 (Q4): the card counts Critical *and* High, so both links carry the same set.
+                   Linking to `severity=critical` alone made the card look like it miscounted. #}
+                <div class="row mt-2">
+                    <div class="col-6 border-end">
+                        <a href="{{ path('app_vulnerability_index', {status: 'active', severity: 'critical,high'}) }}" class="text-reset text-decoration-none d-block">
+                            <div class="text-muted small">{{ 'dashboard.scope.global'|trans }}</div>
+                            <div class="h1 mb-0 text-danger">{{ critical_total }}</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ path('app_vulnerability_index', {status: 'active', severity: 'critical,high', assignee: 'me'}) }}" class="text-reset text-decoration-none d-block">
+                            <div class="text-muted small">{{ 'dashboard.scope.mine'|trans }}</div>
+                            <div class="h1 mb-0 text-danger">{{ critical_mine }}</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-start border-2 border-warning">
+            <div class="card-body">
+                <div class="subheader">{{ 'dashboard.card.in_progress'|trans }}</div>
+                <div class="row mt-2">
+                    <div class="col-6 border-end">
+                        <a href="{{ path('app_vulnerability_index', {status: 'in_progress'}) }}" class="text-reset text-decoration-none d-block">
+                            <div class="text-muted small">{{ 'dashboard.scope.global'|trans }}</div>
+                            <div class="h1 mb-0 text-warning">{{ in_progress_total }}</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ path('app_vulnerability_index', {status: 'in_progress', assignee: 'me'}) }}" class="text-reset text-decoration-none d-block">
+                            <div class="text-muted small">{{ 'dashboard.scope.mine'|trans }}</div>
+                            <div class="h1 mb-0 text-warning">{{ in_progress_mine }}</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if show_software_widgets %}
+    <div class="col-md-6 align-self-start">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">{{ 'dashboard.widget.eos_approaching'|trans }}</h2>
+                    <div class="card-subtitle text-muted small">{{ 'dashboard.widget.eos_within_days'|trans({'%days%': eos_warn_days}) }}</div>
+                </div>
+            </div>
+            {% if eos_approaching_software|length > 0 %}
+                <ul class="list-group list-group-flush">
+                    {% for sw in eos_approaching_software %}
+                        {% set _is_past = sw.eolDate < date() %}
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <div>
+                                    {% if is_granted('SOFTWARE_VIEW', sw) %}
+                                        <a href="{{ path('app_software_show', {'uuid': sw.uuid}) }}" class="text-reset">
+                                            <strong>{{ sw.vendor.name }}</strong> — {{ sw.name }} {{ sw.version }}
+                                        </a>
+                                    {% else %}
+                                        <strong>{{ sw.vendor.name }}</strong> — {{ sw.name }} {{ sw.version }}
+                                    {% endif %}
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge bg-{{ _is_past ? 'danger' : 'warning' }}-lt">
+                                        {% if _is_past %}{{ 'dashboard.widget.eos_past'|trans }}{% else %}{{ sw.eolDate|format_datetime(dateFormat='short', timeFormat='none') }}{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="card-body text-secondary">{{ 'dashboard.widget.eos_empty'|trans }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6 ms-auto align-self-start">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">{{ 'dashboard.widget.review_overdue'|trans }}</h2>
+                    <div class="card-subtitle text-muted small">{{ 'dashboard.widget.review_overdue_note'|trans({'%days%': review_stale_days}) }}</div>
+                </div>
+            </div>
+            {% if review_overdue_software|length > 0 %}
+                <ul class="list-group list-group-flush">
+                    {% for sw in review_overdue_software %}
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center gap-2">
+                                <div>
+                                    {% if is_granted('SOFTWARE_VIEW', sw) %}
+                                        <a href="{{ path('app_software_show', {'uuid': sw.uuid}) }}" class="text-reset">
+                                            <strong>{{ sw.vendor.name }}</strong> — {{ sw.name }} {{ sw.version }}
+                                        </a>
+                                    {% else %}
+                                        <strong>{{ sw.vendor.name }}</strong> — {{ sw.name }} {{ sw.version }}
+                                    {% endif %}
+                                    <div class="text-muted small">
+                                        {% if sw.lastReviewedAt %}
+                                            {{ 'software.field.last_reviewed_at'|trans }}: {{ sw.lastReviewedAt|format_datetime(dateFormat='short', timeFormat='none') }}
+                                        {% else %}
+                                            {{ 'software.review.never'|trans }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if is_granted('SOFTWARE_MODIFY', sw) %}
+                                <form method="post" action="{{ path('app_software_mark_reviewed', {'uuid': sw.uuid}) }}" class="ms-auto">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('mark-reviewed' ~ sw.uuid) }}">
+                                    <input type="hidden" name="return_route" value="app_dashboard">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" data-controller="form-submit">{{ 'software.action.mark_reviewed'|trans }}</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="card-body text-secondary">{{ 'dashboard.widget.review_overdue_empty'|trans }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

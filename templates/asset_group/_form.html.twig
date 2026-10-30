@@ -1,0 +1,118 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import help_toggle, help_text, help_switch, field_errors %}
+<div class="card-body">
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'form-help'}}) }}
+{{ help_switch() }}
+{{ form_widget(form.lockVersion) }}
+
+
+{% if conflict ?? false %}
+    {% include '_include/_optimistic_lock_banner.html.twig' with {
+        last_editor: lastEditor ?? null,
+        last_edited_at: lastEditedAt ?? null,
+        audit_url: path('app_asset_group_show', {uuid: asset_group.uuid}) ~ '#tab-asset-group-history',
+    } only %}
+{% endif %}
+
+<div class="row">
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.name.vars.id }}">
+            {{ form.name.vars.label|trans }}
+            {% if form.name.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.name, {'attr': {'class': 'form-control' ~ (not form.name.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.name) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.assetType.vars.id }}">
+            {{ form.assetType.vars.label|trans }}
+            {% if form.assetType.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.assetType, {'attr': {'class': 'form-select' ~ (not form.assetType.vars.valid ? ' is-invalid'), 'data-controller': 'tom-select', 'data-placeholder': 'asset_group.field.asset_type_placeholder'|trans}}) }}
+        {{ field_errors(form.assetType) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.software.vars.id }}">
+            {{ form.software.vars.label|trans }}
+            {% if form.software.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.software, {'attr': {'class': 'form-select' ~ (not form.software.vars.valid ? ' is-invalid'), 'data-controller': 'tom-select', 'data-placeholder': 'asset_group.field.software_placeholder'|trans}}) }}
+        {{ field_errors(form.software) }}
+    </div>
+    <div class="col-12 mb-3 mt-2">
+        <div class="row g-3 p-3 bg-body-tertiary rounded border">
+            <div class="col-12">
+                {# #215: a section hint, not a field hint — explicit id and key, collapsible like the rest.
+                   The toggle sits beside the heading, not inside it, or its label joins the heading's name. #}
+                <div class="d-flex align-items-center mb-1">
+                    <h4 class="mb-0">{{ 'asset_group.section.risk_properties'|trans }}</h4>
+                    {{ help_toggle('asset_group_risk_properties', 'asset_group.section.risk_properties_help') }}
+                </div>
+                {{ help_text('asset_group_risk_properties', 'asset_group.section.risk_properties_help') }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="{{ form.criticality.vars.id }}">
+                    {{ form.criticality.vars.label|trans }}
+                    {{ help_toggle(form.criticality.vars.id, form.criticality.vars.help) }}
+                </label>
+                {{ form_widget(form.criticality, {'attr': {'class': 'form-select'}}) }}
+                {{ help_text(form.criticality.vars.id, form.criticality.vars.help) }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="{{ form.exposure.vars.id }}">
+                    {{ form.exposure.vars.label|trans }}
+                    {{ help_toggle(form.exposure.vars.id, form.exposure.vars.help) }}
+                </label>
+                {{ form_widget(form.exposure, {'attr': {'class': 'form-select'}}) }}
+                {{ help_text(form.exposure.vars.id, form.exposure.vars.help) }}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="{{ form.dataSensitivity.vars.id }}">
+                    {{ form.dataSensitivity.vars.label|trans }}
+                    {{ help_toggle(form.dataSensitivity.vars.id, form.dataSensitivity.vars.help) }}
+                </label>
+                {{ form_widget(form.dataSensitivity, {'attr': {'class': 'form-select'}}) }}
+                {{ help_text(form.dataSensitivity.vars.id, form.dataSensitivity.vars.help) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.description.vars.id }}">
+            {{ form.description.vars.label|trans }}
+            {% if form.description.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.description, {'attr': {'class': 'form-control' ~ (not form.description.vars.valid ? ' is-invalid'), 'rows': 4}}) }}
+        {{ field_errors(form.description) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.responsibleUser.vars.id }}">
+            {{ form.responsibleUser.vars.label|trans }}
+        </label>
+        {{ form_widget(form.responsibleUser, {'attr': {'class': 'form-select' ~ (not form.responsibleUser.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.responsibleUser) }}
+    </div>
+    <div class="col-12 mb-3">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.active, {'attr': {'class': 'form-check-input mt-0'}}) }}
+            <label class="form-check-label" for="{{ form.active.vars.id }}">
+                {{ form.active.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.active) }}
+    </div>
+</div>
+
+<div class="form-footer d-flex justify-content-between">
+    <a href="{{ (return_to_show ?? false) ? path('app_asset_group_show', {'uuid': asset_group.uuid}|merge(return_params ?? {})) : path('app_asset_group_index', return_params ?? {}) }}" class="btn btn-outline-secondary">
+        {{ 'common.cancel'|trans }}
+    </a>
+    <button type="submit" class="btn btn-primary" data-controller="form-submit">
+        {{ (button_label ?? 'asset_group.save')|trans }}
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>

@@ -1,0 +1,66 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<ul class="nav nav-tabs mb-3" data-bs-toggle="tabs">
+    <li class="nav-item">
+        <a href="#tab-vendor-detail" class="nav-link active" data-bs-toggle="tab">{{ 'vendor.section.details'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-vendor-meta" class="nav-link" data-bs-toggle="tab">{{ 'vendor.section.meta'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-vendor-history" class="nav-link" data-bs-toggle="tab">{{ 'audit.tab.history'|trans }}</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active show" id="tab-vendor-detail">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.name', value: vendor.name } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.vendor_key', value: vendor.vendorKey } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.aliases', value: vendor.aliases ? vendor.aliases|join(', ') : null } %}
+
+        {% set website_html %}
+            {# SEC-NEW-003: Only render URLs with http/https scheme to prevent javascript: XSS (defense-in-depth; entity validation also enforces this). #}
+            {% if vendor.website and (vendor.website starts with 'https://' or vendor.website starts with 'http://') %}
+                <a href="{{ vendor.website }}" target="_blank" rel="noopener noreferrer">{{ vendor.website }}</a>
+            {% elseif vendor.website %}
+                <span class="text-muted">{{ vendor.website }}</span>
+            {% else %}—{% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.website', value_html: website_html } %}
+
+        {% set advisory_html %}
+            {# SEC-NEW-003: Only render URLs with http/https scheme to prevent javascript: XSS (defense-in-depth; entity validation also enforces this). #}
+            {% if vendor.advisoryUrl and (vendor.advisoryUrl starts with 'https://' or vendor.advisoryUrl starts with 'http://') %}
+                <a href="{{ vendor.advisoryUrl }}" target="_blank" rel="noopener noreferrer">{{ vendor.advisoryUrl }}</a>
+            {% elseif vendor.advisoryUrl %}
+                <span class="text-muted">{{ vendor.advisoryUrl }}</span>
+            {% else %}—{% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.advisory_url', value_html: advisory_html } %}
+
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.software_count', value: vendor.software|length } %}
+
+        {% set active_html %}
+            {% if vendor.active %}
+                <span class="badge bg-green-lt">{{ 'common.yes'|trans }}</span>
+            {% else %}
+                <span class="badge bg-secondary-lt">{{ 'common.no'|trans }}</span>
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'vendor.field.active', value_html: active_html } %}
+
+    </div>
+    <div class="tab-pane" id="tab-vendor-meta">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_at', value: vendor.createdAt ? vendor.createdAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_by', value: vendor.createdBy } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_at', value: vendor.updatedAt ? vendor.updatedAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_by', value: vendor.updatedBy } %}
+
+    </div>
+    <div class="tab-pane" id="tab-vendor-history">
+        {% include '_include/_audit_timeline.html.twig' with { entity: vendor, entity_slug: 'vendor' } %}
+    </div>
+</div>

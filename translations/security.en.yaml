@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+Account is disabled.: 'Your account is disabled. Please contact an administrator.'
+
+# SEC-008: keyed message, used by UserChecker on inactive accounts.
+security:
+    account_disabled: 'Your account is disabled. Please contact an administrator.'

@@ -1,0 +1,30 @@
+version = 1
+SPDX-PackageName = "OdinShield"
+SPDX-PackageDownloadLocation = "https://github.com/odinshield/odinshield"
+
+# Files with comment syntax carry their own SPDX header (#244). This file only covers
+# what cannot take one, or what a tool rewrites as a whole and would lose the header:
+# JSON, images, lock files, VERSION, Symfony/Flex/Doctrine-managed PHP outside src/ and
+# tests/, and the Claude Code artefacts whose YAML front matter must stay on line 1.
+
+[[annotations]]
+path = [
+    "**/*.json",
+    "composer.lock",
+    "tools/sbom/composer.lock",
+    "symfony.lock",
+    "VERSION",
+    "assets/img/**",
+    "public/**",
+    "bin/**",
+    "config/bundles.php",
+    "config/preload.php",
+    "config/reference.php",
+    "importmap.php",
+    "migrations/**",
+    ".claude/**",
+    "MEMORY.md",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 André Gommlich, www.odinshield.net"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

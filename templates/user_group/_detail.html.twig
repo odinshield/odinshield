@@ -1,0 +1,88 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<ul class="nav nav-tabs mb-3" data-bs-toggle="tabs">
+    <li class="nav-item">
+        <a href="#tab-user-group-detail" class="nav-link active" data-bs-toggle="tab">{{ 'user_group.section.details'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-user-group-users" class="nav-link" data-bs-toggle="tab">{{ 'user_group.section.users'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-user-group-asset-types" class="nav-link" data-bs-toggle="tab">{{ 'user_group.section.asset_types'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-user-group-meta" class="nav-link" data-bs-toggle="tab">{{ 'user_group.section.meta'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-user-group-history" class="nav-link" data-bs-toggle="tab">{{ 'audit.tab.history'|trans }}</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active show" id="tab-user-group-detail">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'user_group.field.name', value: user_group.name } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user_group.field.description', value: user_group.description } %}
+
+    </div>
+    <div class="tab-pane" id="tab-user-group-users">
+
+        {% if user_group.users|length > 0 %}
+        <div data-controller="paginated-list" data-paginated-list-page-size-value="15">
+            <div class="table-responsive">
+                <table class="table table-vcenter table-sm table-striped">
+                    <tbody>
+                    {% for user in user_group.users %}
+                        <tr data-paginated-list-target="item">
+                            <td>{{ user.fullName }}</td>
+                            <td class="text-secondary">{{ user.username }}</td>
+                            <td class="text-secondary">{{ user.email }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div data-paginated-list-target="pagination"></div>
+        </div>
+        {% else %}
+        <div class="text-secondary py-2">{{ 'user_group.no_users'|trans }}</div>
+        {% endif %}
+
+    </div>
+    <div class="tab-pane" id="tab-user-group-asset-types">
+
+        {% if user_group.assetTypes|length > 0 %}
+        <div data-controller="paginated-list" data-paginated-list-page-size-value="15">
+            <div class="table-responsive">
+                <table class="table table-vcenter table-sm table-striped">
+                    <tbody>
+                    {% for at in user_group.assetTypes %}
+                        <tr data-paginated-list-target="item">
+                            <td>{{ at.name }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div data-paginated-list-target="pagination"></div>
+        </div>
+        {% else %}
+        <div class="text-secondary py-2">{{ 'user_group.no_asset_types'|trans }}</div>
+        {% endif %}
+
+    </div>
+    <div class="tab-pane" id="tab-user-group-meta">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_at', value: user_group.createdAt ? user_group.createdAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_by', value: user_group.createdBy } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_at', value: user_group.updatedAt ? user_group.updatedAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_by', value: user_group.updatedBy } %}
+
+    </div>
+    <div class="tab-pane" id="tab-user-group-history">
+        <div style="max-height: 420px; overflow-y: auto;">
+            {% include '_include/_audit_timeline.html.twig' with { entity: user_group, entity_slug: 'user_group', page_size: 15 } %}
+        </div>
+    </div>
+</div>

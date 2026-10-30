@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+back_to_app: 'Zur Anwendung'
+title: 'Handbuch'
+
+code:
+    copy: 'Code kopieren'
+    copied: 'Kopiert'
+    copy_failed: 'Kopieren nicht möglich'
+
+home:
+    label: 'Zur Handbuch-Startseite'
+
+breadcrumb:
+    label: 'Brotkrumen-Navigation'
+
+pagination:
+    finish: 'Fertig'
+    label: 'Seitennavigation'
+    next: 'Nächste Seite'
+    previous: 'Vorherige Seite'
+
+nav:
+    first_steps: 'Erste Schritte'
+    vulnerabilities: 'Schwachstellen verwalten'
+    inventory: 'Inventar pflegen'
+    team: 'Team & Zuständigkeiten'
+    settings: 'Persönliche Einstellungen'
+    reference: 'Nachschlagen'
+    faq: 'FAQ'
+    glossary: 'Glossar'
+    tips: 'Tipps & Best Practices'
+
+search:
+    open: 'Suche öffnen'
+    title: 'Suche im Handbuch'
+    placeholder: 'Begriff oder Frage eingeben…'
+    no_results: 'Keine Treffer gefunden'
+    loading: 'Suche läuft…'
+    unavailable: 'Suche derzeit nicht verfügbar'
+    unavailable_hint: 'Der Suchindex wurde noch nicht erstellt. Bitte wenden Sie sich an Ihre Administration.'
+    close: 'Schließen'
+    result_one: '1 Treffer'
+    result_many: '%count% Treffer'
+    shortcut: 'Strg+K'
+    shortcut_mac: 'Cmd+K'
+
+toc:
+    label: 'Auf dieser Seite'

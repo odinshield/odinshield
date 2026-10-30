@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Feature / Change Request
+about: Eine Änderung oder neue Funktion vorschlagen
+title: "ADD "
+labels:
+  - feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Beschreibe den Vorschlag und vor allem das **Warum** — welches Problem wird gelöst?
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: Welcher Schmerzpunkt oder welche Anforderung steckt dahinter? (z. B. BSI-CS 093 Bezug)
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Vorgeschlagene Lösung
+      description: Wie soll es funktionieren? Betroffene Bereiche (Controller, Entity, UI …).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativen
+      description: Andere erwogene Ansätze und warum verworfen.
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priorität
+      options:
+        - "prio: low"
+        - "prio: medium"
+        - "prio: high"
+        - "prio: critical"
+    validations:
+      required: false

@@ -1,0 +1,108 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<ul class="nav nav-tabs mb-3" data-bs-toggle="tabs">
+    <li class="nav-item">
+        <a href="#tab-asset-group-detail" class="nav-link active" data-bs-toggle="tab">{{ 'asset_group.section.details'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-asset-group-software" class="nav-link" data-bs-toggle="tab">{{ 'asset_group.section.software'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-asset-group-vulnerabilities" class="nav-link" data-bs-toggle="tab">{{ 'asset_group.section.vulnerabilities'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-asset-group-meta" class="nav-link" data-bs-toggle="tab">{{ 'asset_group.section.meta'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-asset-group-history" class="nav-link" data-bs-toggle="tab">{{ 'audit.tab.history'|trans }}</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active show" id="tab-asset-group-detail">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.name', value: asset_group.name } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.asset_type', value: asset_group.assetType.name } %}
+
+        {% set criticality_html %}
+            <span class="badge bg-{{ asset_group.criticality.color() }}-lt">{{ ('asset_criticality.' ~ asset_group.criticality.value)|trans }}</span>
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.criticality', value_html: criticality_html } %}
+
+        {% set exposure_html %}
+            <span class="badge bg-{{ asset_group.exposure.color() }}-lt">{{ ('asset_exposure.' ~ asset_group.exposure.value)|trans }}</span>
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.exposure', value_html: exposure_html } %}
+
+        {% set data_sensitivity_html %}
+            <span class="badge bg-{{ asset_group.dataSensitivity.color() }}-lt">{{ ('data_sensitivity.' ~ asset_group.dataSensitivity.value)|trans }}</span>
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.data_sensitivity', value_html: data_sensitivity_html } %}
+
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.responsible_user', value: asset_group.responsibleUser ? asset_group.responsibleUser.firstName ~ ' ' ~ asset_group.responsibleUser.lastName ~ ' (' ~ asset_group.responsibleUser.username ~ ')' } %}
+
+        {% include '_include/_detail_row.html.twig' with { label: 'asset_group.field.description', value: asset_group.description } %}
+
+    </div>
+    <div class="tab-pane" id="tab-asset-group-software">
+
+        {% if asset_group.software|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-vcenter table-sm table-striped">
+                <tbody>
+                {% for sw in asset_group.software %}
+                    <tr>
+                        <td>{{ sw.vendor.name }}</td>
+                        <td>{{ sw.name }}</td>
+                        <td class="text-secondary">{{ sw.version }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-secondary py-2">{{ 'asset_group.no_software'|trans }}</div>
+        {% endif %}
+
+    </div>
+    <div class="tab-pane" id="tab-asset-group-vulnerabilities">
+
+        {% if asset_group.vulnerabilities|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-vcenter table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>{{ 'vulnerability.field.title'|trans }}</th>
+                        <th>{{ 'vulnerability.field.severity'|trans }}</th>
+                        <th>{{ 'vulnerability.field.status'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for vuln in asset_group.vulnerabilities %}
+                    <tr>
+                        <td>{{ vuln.title }}</td>
+                        <td>{{ ('vulnerability_severity.' ~ vuln.severity.value)|trans }}</td>
+                        <td>{{ ('vulnerability_status.' ~ vuln.status.value)|trans }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-secondary py-2">{{ 'asset_group.no_vulnerabilities'|trans }}</div>
+        {% endif %}
+
+    </div>
+    <div class="tab-pane" id="tab-asset-group-meta">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_at', value: asset_group.createdAt ? asset_group.createdAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_by', value: asset_group.createdBy } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_at', value: asset_group.updatedAt ? asset_group.updatedAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_by', value: asset_group.updatedBy } %}
+
+    </div>
+    <div class="tab-pane" id="tab-asset-group-history">
+        {% include '_include/_audit_timeline.html.twig' with { entity: asset_group, entity_slug: 'asset_group' } %}
+    </div>
+</div>

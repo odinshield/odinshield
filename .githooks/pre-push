@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Pre-push gate: nothing goes out that has not passed `make ci`. The check runs in the claude
+# container before the push (`make ci` there, then `make push` on the host); this hook only
+# verifies the stamp and never runs the suite. Bypass (sparingly, e.g. WIP branch): git push --no-verify
+set -e
+
+# `make ci` (claude container) stamps the commit it checked into .ci-ok (clean tree only). Every
+# commit this push sends must be that commit. Git hands the hook one line per ref on stdin:
+# <local-ref> <local-sha> <remote-ref> <remote-sha>. Tags are peeled to their commit; a deletion
+# (all-zero sha) sends nothing and needs no check.
+stamp=$(cat .ci-ok 2>/dev/null || true)
+unchecked=
+sent=0
+while read -r local_ref local_sha _remote_ref _remote_sha; do
+    case "$local_sha" in
+    *[!0]*) ;;
+    *) continue ;;
+    esac
+    sent=1
+    commit=$(git rev-parse --verify --quiet "${local_sha}^{commit}" || true)
+    if [ -z "$stamp" ] || [ "$commit" != "$stamp" ]; then
+        unchecked="$unchecked $local_ref"
+    fi
+done
+
+if [ "$sent" = 0 ]; then
+    echo "▶ pre-push: no commits sent (deletion only) — nothing to check"
+    exit 0
+fi
+if [ -n "$unchecked" ]; then
+    echo "✗ pre-push: not checked by 'make ci':$unchecked" >&2
+    echo "  Run 'make ci' in the claude container on this commit first, then push (make push)." >&2
+    exit 1
+fi
+echo "▶ pre-push: $stamp passed 'make ci'"

@@ -1,0 +1,63 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{# Issue #66: points out objects nobody is responsible for, and links straight into the filter
+   that lists them.
+
+   Responsibility is the organising idea of this tool, yet "what is nobody responsible for?" was
+   the one question it could not answer — a gap you can only find by opening every record is a gap
+   nobody finds. The banner is what turns "findable" into "visible without asking".
+
+   Shown to ISB and admin only; the controller hands over null for everyone else and also when
+   nothing is unassigned, so there is no leftover "0 objects" banner.
+
+   Not an alert-warning on purpose: an unowned object is a gap to close, not a fault to fix, and
+   it must not compete visually with the source-health warning above it.
+
+   Variables:
+   - unassigned: hash with `total` plus ONLY those of vulnerabilities/software/asset_groups the
+     viewer may actually open — a figure without a usable list would link into an unexplained
+     empty page (#67), so the controller leaves those keys out entirely. Never null here.
+#}
+<div class="alert alert-info mb-3" role="status">
+    <div class="d-flex">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon alert-icon me-2" aria-hidden="true">
+                <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/>
+                <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/>
+                <path d="M19 7h-4"/>
+            </svg>
+        </div>
+        <div>
+            <h2 class="alert-title h4">
+                {{ 'dashboard.unassigned.title'|trans({'%count%': unassigned.total}) }}
+            </h2>
+            <div class="text-secondary">
+                {{ 'dashboard.unassigned.body'|trans }}
+            </div>
+            <div class="mt-2 d-flex flex-wrap gap-2">
+                {% if unassigned.vulnerabilities|default(0) > 0 %}
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="{{ path('app_vulnerability_index', {'assignee': 'unassigned', 'status': 'active'}) }}">
+                        {{ 'dashboard.unassigned.link_vulnerabilities'|trans({'%count%': unassigned.vulnerabilities}) }}
+                    </a>
+                {% endif %}
+                {% if unassigned.software|default(0) > 0 %}
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="{{ path('app_software_index', {'assignee': 'unassigned', 'filter': 'active'}) }}">
+                        {{ 'dashboard.unassigned.link_software'|trans({'%count%': unassigned.software}) }}
+                    </a>
+                {% endif %}
+                {% if unassigned.asset_groups|default(0) > 0 %}
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="{{ path('app_asset_group_index', {'assignee': 'unassigned', 'status': 'active'}) }}">
+                        {{ 'dashboard.unassigned.link_asset_groups'|trans({'%count%': unassigned.asset_groups}) }}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

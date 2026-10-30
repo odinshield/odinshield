@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Override for deployments where Traefik does NOT terminate TLS.
+#
+# Use when a reverse proxy sits in front of Traefik, terminates TLS there and
+# forwards over plain HTTP. Traefik then has no ACME certresolver at all, and the
+# `tls.certresolver` label of the base file would make it retry ACME forever for a
+# resolver that does not exist.
+#
+# Usage:
+#   docker compose -f compose.deploy.yaml -f compose.frontproxy.yaml up -d
+#   (both files, in this order, on EVERY compose call — including `logs` and `down`)
+#
+# Prerequisites:
+#   - The front proxy terminates TLS and sets the Host header to the name the
+#     Traefik router matches on, i.e. to TRAEFIK_HOST. If it forwards the public
+#     name instead, Traefik answers 404 — no router matches.
+#   - The front proxy answers port 80 itself and does the HTTP→HTTPS redirect.
+#     That is why no `-http` router is defined here: Traefik's `web` entrypoint
+#     never sees those requests.
+#   - TRAEFIK_MIDDLEWARES must be set (e.g. a CrowdSec bouncer). Compose fails fast
+#     if it is missing — an empty middleware chain is not a meaningful state in this
+#     mode, where the app is exposed through a proxy chain rather than by Traefik.
+#   - TRUSTED_PROXIES must list the Traefik network AND the front proxy (#199), or
+#     Symfony sees the front proxy's IP for every user — login throttling then locks
+#     out everyone at once and the audit trail records one IP. Read the two values:
+#         docker network inspect "${TRAEFIK_NETWORK:-traefik}" --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+#         (front proxy = last X-Forwarded-For entry in ./data/log/access.log)
+#     and set e.g. TRUSTED_PROXIES=172.22.0.0/16,10.20.0.2 in .env. Traefik itself
+#     must trust the front proxy too (forwardedHeaders.trustedIPs on the entrypoint) —
+#     otherwise X-Forwarded-For carries only the front proxy and there is nothing left
+#     for Symfony to find. Check: the access log shows "<client>, <front proxy>".
+#   - The access-log directory must exist and be owned by UID 33 (www-data — the
+#     prod image runs FrankenPHP as www-data, not as UID 1000):
+#         mkdir -p ./data/log && sudo chown 33:33 ./data/log && sudo chmod 750 ./data/log
+#     Its default is ./data/log inside the stack directory, which keeps it
+#     collision-free per instance. Override with ODINSHIELD_LOG_DIR.
+#
+# Why `!override` on labels: a normal merge can only overwrite or add label keys,
+# never remove one — and removing `tls.certresolver` is the whole point. The
+# `!override` tag (Compose >= 2.24; verified against v5.5.1) replaces the block
+# wholesale. Keep this list in sync with the base file when routing changes there.
+
+services:
+  php:
+    labels: !override
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik}"
+      # ── HTTPS router, certificate supplied by the front proxy ─────────────────
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.rule=Host(`${TRAEFIK_HOST:?TRAEFIK_HOST is required}`)"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.entrypoints=websecure"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.tls=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.middlewares=${TRAEFIK_MIDDLEWARES:?TRAEFIK_MIDDLEWARES is required in front-proxy mode (e.g. crowdsec-bouncer@docker)}"
+      - "traefik.http.services.${INSTANCE_NAME:-odinshield}.loadbalancer.server.port=80"
+    environment:
+      # Access log to a FILE instead of stdout — an IPS (CrowdSec) reads it from the
+      # host. Note the consequence: an empty `docker compose logs php` no longer
+      # proves that no requests arrived; read access.log instead.
+      CADDY_SERVER_LOG_OPTIONS: |
+        output file /var/log/caddy/access.log {
+            roll_size 100mb
+            roll_keep 10
+            roll_keep_for 720h
+        }
+      CADDY_LOG_FORMAT_WRAP: "wrap json"
+    volumes:
+      - ${ODINSHIELD_LOG_DIR:-./data/log}:/var/log/caddy:rw

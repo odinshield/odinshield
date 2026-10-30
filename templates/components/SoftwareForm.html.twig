@@ -1,0 +1,141 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import eol_datepicker, help_toggle, help_text, help_switch, field_errors, nvd_cpe_link %}
+<div {{ attributes }}>
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'form-help'}}) }}
+{{ help_switch() }}
+
+
+{% if conflict %}
+    <div data-controller="scroll-into-view">
+        {% include '_include/_optimistic_lock_banner.html.twig' with {
+            last_editor: lastEditor,
+            last_edited_at: lastEditedAt,
+            audit_url: path('app_software_show', {uuid: initialFormData.uuid}) ~ '#tab-software-history',
+        } only %}
+    </div>
+{% endif %}
+
+<div class="row" data-controller="slug-fill">
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.name.vars.id }}">
+            {{ form.name.vars.label|trans }}
+            {% if form.name.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.name, {'attr': {
+            'class': 'form-control' ~ (not form.name.vars.valid ? ' is-invalid'),
+            'data-slug-fill-target': 'name',
+            'data-action': 'input->slug-fill#nameInput blur->slug-fill#nameBlur',
+        }}) }}
+        {{ field_errors(form.name) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.vendor.vars.id }}">
+            {{ form.vendor.vars.label|trans }}
+            {% if form.vendor.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        <div class="input-group">
+            {{ form_widget(form.vendor, {'attr': {
+                'class': 'form-select' ~ (not form.vendor.vars.valid ? ' is-invalid')
+            }}) }}
+            {# Vendor quick-create is gated to the same roles allowed by SoftwareVoter::MODIFY_BYPASS.
+               Users with per-entity MODIFY access (responsibleUser) see no trigger — they pick from
+               existing vendors instead of triggering a 403 on the AJAX endpoint. #}
+            {% if is_granted('ROLE_SOFTWARE_OWNER') or is_granted('ROLE_ISB') %}
+                <button type="button" class="btn btn-outline-secondary"
+                        style="--tblr-btn-border-color: var(--tblr-border-color);"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modal-vendor-quick-create"
+                        title="{{ 'vendor.quick_create.button'|trans }}"
+                        aria-label="{{ 'vendor.quick_create.button'|trans }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon" aria-hidden="true">
+                        <path d="M12 5l0 14"/><path d="M5 12l14 0"/>
+                    </svg>
+                </button>
+            {% endif %}
+        </div>
+        {{ field_errors(form.vendor) }}
+    </div>
+
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.productKey.vars.id }}">
+            {{ form.productKey.vars.label|trans }}
+            {% if form.productKey.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            {{ help_toggle(form.productKey.vars.id, form.productKey.vars.help) }}
+        </label>
+        {{ form_widget(form.productKey, {'attr': {
+            'class': 'form-control' ~ (not form.productKey.vars.valid ? ' is-invalid'),
+            'data-slug-fill-target': 'key',
+            'data-action': 'input->slug-fill#keyInput',
+        }}) }}
+        {{ help_text(form.productKey.vars.id, form.productKey.vars.help) }}
+        {{ nvd_cpe_link() }}
+        {{ field_errors(form.productKey) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.version.vars.id }}">
+            {{ form.version.vars.label|trans }}
+            {% if form.version.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            {{ help_toggle(form.version.vars.id, form.version.vars.help) }}
+        </label>
+        {{ form_widget(form.version, {'attr': {'class': 'form-control' ~ (not form.version.vars.valid ? ' is-invalid')}}) }}
+        {{ help_text(form.version.vars.id, form.version.vars.help) }}
+        {{ field_errors(form.version) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.aliases.vars.id }}">
+            {{ form.aliases.vars.label|trans }}
+            {% if form.aliases.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+            {{ help_toggle(form.aliases.vars.id, form.aliases.vars.help) }}
+        </label>
+        {{ form_widget(form.aliases, {'attr': {'class': 'form-control' ~ (not form.aliases.vars.valid ? ' is-invalid')}}) }}
+        {{ help_text(form.aliases.vars.id, form.aliases.vars.help) }}
+        {{ field_errors(form.aliases) }}
+    </div>
+    <div class="col-12 mb-3">
+        {{ eol_datepicker(form.eolDate, app.request.locale) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.maintenanceSource.vars.id }}">
+            {{ form.maintenanceSource.vars.label|trans }}
+            {{ help_toggle(form.maintenanceSource.vars.id, form.maintenanceSource.vars.help) }}
+        </label>
+        {{ form_widget(form.maintenanceSource, {'attr': {'class': 'form-select'}}) }}
+        {{ help_text(form.maintenanceSource.vars.id, form.maintenanceSource.vars.help) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.responsibleUser.vars.id }}">
+            {{ form.responsibleUser.vars.label|trans }}
+        </label>
+        {{ form_widget(form.responsibleUser, {'attr': {'class': 'form-select' ~ (not form.responsibleUser.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.responsibleUser) }}
+    </div>
+    <div class="col-12 mb-3 d-flex align-items-end">
+        <div class="form-check form-switch d-flex align-items-center gap-2">
+            {{ form_widget(form.active, {'attr': {'class': 'form-check-input mt-0' ~ (not form.active.vars.valid ? ' is-invalid')}}) }}
+            <label class="form-check-label" for="{{ form.active.vars.id }}">
+                {{ form.active.vars.label|trans }}
+            </label>
+        </div>
+        {{ field_errors(form.active) }}
+    </div>
+</div>
+
+<div class="form-footer d-flex justify-content-between">
+    <a href="{{ (returnToShow and not isNew) ? path('app_software_show', {'uuid': initialFormData.uuid}|merge(returnParams)) : path('app_software_index', returnParams) }}" class="btn btn-outline-secondary">
+        {{ 'common.cancel'|trans }}
+    </a>
+    <button type="button" class="btn btn-primary"
+            data-action="live#action"
+            data-live-action-param="save"
+            data-loading="addAttribute(disabled) addClass(btn-loading)">
+        {{ buttonLabel|trans }}
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>

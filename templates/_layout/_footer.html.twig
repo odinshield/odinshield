@@ -1,0 +1,35 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<footer class="footer footer-transparent d-print-none">
+    <div class="{{ container_class }}">
+        <div class="row text-center align-items-center flex-row-reverse">
+            <div class="col-auto ms-auto">
+                <ul class="list-inline list-inline-dots mb-0">
+                    <li class="list-inline-item">
+                        <a href="{{ path('app_manual', {from: app.current_route}) }}" class="link-secondary" target="_blank" rel="noopener noreferrer">{{ 'footer.documentation'|trans }}</a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a href="{{ path('app_legal') }}" class="link-secondary">{{ 'footer.legal'|trans }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                <ul class="list-inline list-inline-dots mb-0">
+                    {# text-secondary: the inherited footer colour does not follow the dark theme (3.67:1) #}
+                    <li class="list-inline-item text-secondary">
+                        &copy; {{ 'now'|date('Y') }} OdinShield
+                    </li>
+                    <li class="list-inline-item">
+                        {# SPDX identifier, not translated (#146) #}
+                        <a href="{{ path('app_legal') }}" class="link-secondary">AGPL-3.0-or-later</a>
+                    </li>
+                    <li class="list-inline-item text-secondary">
+                        v{{ app_version }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>

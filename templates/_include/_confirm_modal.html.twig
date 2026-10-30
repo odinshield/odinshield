@@ -1,0 +1,42 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+    Variables (optional):
+      modal_id      – id des Modals              (default: 'confirmModal')
+      confirm_label – Translation-Key            (default: 'common.yes')
+      confirm_class – CSS-Klasse Confirm-Button  (default: 'btn-danger')
+#}
+{% set modal_id      = modal_id      ?? 'confirmModal' %}
+{% set confirm_label = confirm_label ?? 'common.yes' %}
+{% set confirm_class = confirm_class ?? 'btn-danger' %}
+
+<div class="modal modal-blur fade" id="{{ modal_id }}" tabindex="-1" role="dialog" aria-hidden="true"
+     aria-labelledby="{{ modal_id }}-label"
+     data-confirm-modal-target="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-status bg-danger"></div>
+            <div class="modal-body text-center py-4">
+                <p class="mb-0" id="{{ modal_id }}-label" data-confirm-modal-target="message"></p>
+            </div>
+            <div class="modal-footer">
+                <div class="row w-100 g-2">
+                    <div class="col">
+                        <button type="button" class="btn btn-ghost-secondary w-100"
+                                data-bs-dismiss="modal">
+                            {{ 'common.cancel'|trans }}
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn {{ confirm_class }} w-100"
+                                data-action="confirm-modal#confirm">
+                            {{ confirm_label|trans }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,145 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+monolog:
+    channels: # To see all channels, run bin/console debug:autowiring logger
+        - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
+        - messenger_idle # #312: the worker's once-a-second LISTEN/NOTIFY idle line (config/services.yaml)
+
+when@dev:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: debug
+                channels: ["!event"]
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine", "!console"]
+
+when@test:
+    monolog:
+        handlers:
+            main:
+                type: fingers_crossed
+                action_level: error
+                handler: nested
+                excluded_http_codes: [400, 404, 405]
+                channels: ["!event"]
+            nested:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: debug
+
+when@prod:
+    monolog:
+        handlers:
+            # On error+, dump the full buffered context to BOTH stderr (docker logs)
+            # AND the mail pipeline. `group` fans out a single fingers_crossed
+            # trigger to multiple sinks without double-buffering.
+            main:
+                type: fingers_crossed
+                handler: group_main
+                # Custom activation strategy (App\Monolog\ScannerNoiseActivationStrategy).
+                # Fires on error+ but drops client-induced noise that never indicates a
+                # server bug:
+                #   - HTTP 400 (malformed body) / 404 (unknown route) / 405 (wrong method)
+                #   - specific FrankenPHP/session PHP warnings on the "php" channel from
+                #     attacker-controlled input (missing multipart boundary, bad session id)
+                #   - 401/403 from a Turbo PREFETCH (#77), marked on the record by
+                #     App\Monolog\PrefetchProcessor. The same status from a real navigation
+                #     still alerts, and a 500 during a prefetch still alerts.
+                #
+                # Replaces the former `excluded_http_codes: [400, 404, 405]`, which had two
+                # holes exposed by a security scan (see PENTEST/):
+                #   1. Symfony's HttpCodeActivationStrategy reads the status via
+                #      RequestStack::getMainRequest(), which is not reliably set under
+                #      FrankenPHP worker mode → 404s leaked to mail anyway. The custom
+                #      strategy reads the status straight off the exception instead.
+                #   2. php-channel warnings carry no HTTP status, so excluded_http_codes
+                #      could never catch them. The custom strategy matches them by message.
+                # The error threshold (Level::Error) lives in the strategy, so `action_level`
+                # here would be dead config (the bundle ignores it once activation_strategy
+                # is set) and is intentionally omitted.
+                #
+                # NOTE: when no record activates the handler, NOTHING flushes — neither
+                # mail NOR the stderr `nested` member below. That is intended: scanner
+                # noise should not fill docker logs either, and CrowdSec ingests Caddy's
+                # access log, not PHP stderr.
+                #
+                # CAVEAT for a future public API: a legitimate API consumer sending a
+                # malformed JSON payload also triggers 400 and would be invisible here.
+                # Before exposing a public API, narrow the strategy (exclude 400 only for
+                # non-API paths, or key off exception class) so real client errors on API
+                # routes stay observable.
+                activation_strategy: App\Monolog\ScannerNoiseActivationStrategy
+                # Console-channel errors are intentionally NOT excluded here — operator
+                # typos like `bin/console odinshield:csaf --help` (namespace, not command)
+                # surface Symfony's CommandNotFoundException at CRITICAL and currently
+                # do trigger a mail. Acceptable trade-off for now: prod console activity
+                # is rare and any error there is worth seeing. Revisit by adding
+                # `"!console"` to channels if/when CLI noise becomes a problem.
+                # `!messenger_idle` (#312): the idle worker's wake-up line, once a second, crowded
+                # the run's own records out of the 50-record buffer below.
+                channels: ["!deprecation", "!messenger_idle"]
+                buffer_size: 50 # How many messages should be saved? Prevent memory leaks
+                # Keep buffering after an activation (#145). With Monolog's default
+                # (true) the first error switched this handler to pass-through until the
+                # next reset — in the worker that is the END of the message, so one
+                # failed provider in a CSAF run mailed the whole remaining run (3.8 MB,
+                # 2,097 records). Now an error forwards only the up-to-50 records before
+                # it; a later error in the same run forwards its own context, and
+                # deduplicated_mailer still collects them into one mail.
+                # Trade-off, measured against dev.log: records logged AFTER the error
+                # in the same request are dropped — in practice session/Doctrine
+                # disconnect noise, nothing diagnostic.
+                stop_buffering: false
+            group_main:
+                type: group
+                members: [nested, deduplicated_mailer]
+            nested:
+                type: stream
+                path: php://stderr
+                level: debug
+                formatter: monolog.formatter.json
+            # NOTE: this handler BUFFERS — records only reach the mailer in flush(),
+            # which is reached via close()/reset(). Under FrankenPHP worker mode no
+            # request boundary triggers either (Kernel::boot() resets services only at
+            # the START of the next request on that same thread), which once delayed a
+            # real error mail by 5.5 days and drops it entirely if the worker dies
+            # first. App\EventListener\LogBufferFlushListener resets the logger on
+            # kernel.terminate to close that gap — do not remove it while this handler
+            # (or any other BufferHandler) is in the chain.
+            #
+            # Suppress repeat mails for the same error fingerprint within 10 min.
+            # Persists deduplication state in /tmp inside the container — survives
+            # within a request burst but not across container restarts, which is
+            # fine: a restart is itself a signal you'd want to know about.
+            deduplicated_mailer:
+                type: deduplication
+                handler: symfony_mailer
+                time: 600
+            symfony_mailer:
+                type: symfony_mailer
+                from_email: '%env(MAILER_SENDER)%'
+                to_email: ['%env(MONOLOG_ERROR_TO)%']
+                # extra.instance names the sending stage (#144) — Q, Demo and the customer
+                # test share image, config and possibly the recipient, and `prod` is only
+                # the Symfony environment. Set by App\Monolog\InstanceProcessor, bound to
+                # this handler in config/services.yaml. Without it the placeholder is
+                # dropped by LineFormatter, not printed.
+                subject: '[OdinShield %%extra.instance%%] %%level_name%%: %%message%%'
+                level: debug
+                formatter: monolog.formatter.html
+                content_type: text/html
+            # No deprecation handler in prod (#175): nobody reads deprecations on a stage, and a
+            # stderr handler printed each one as JSON ahead of every `bin/console` output and into
+            # docker logs. They surface in dev (profiler, dev.log) and in the test suite instead.
+            # `!deprecation` also keeps them out of the worker's `-vv` console output.
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine", "!deprecation"]

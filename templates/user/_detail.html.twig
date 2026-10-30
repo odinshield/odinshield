@@ -1,0 +1,59 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<ul class="nav nav-tabs mb-3" data-bs-toggle="tabs">
+    <li class="nav-item">
+        <a href="#tab-account-modal" class="nav-link active" data-bs-toggle="tab">{{ 'user.section.account'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-meta-modal" class="nav-link" data-bs-toggle="tab">{{ 'user.section.meta'|trans }}</a>
+    </li>
+    <li class="nav-item">
+        <a href="#tab-user-history" class="nav-link" data-bs-toggle="tab">{{ 'audit.tab.history'|trans }}</a>
+    </li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane active show" id="tab-account-modal">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.username', value: user.username } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.email',    value: user.email } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.first_name', value: user.firstName } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.last_name',  value: user.lastName } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.locale',     value: user.locale } %}
+
+        {% set roles_html %}
+            {% set display_roles = user.roles|filter(r => r != 'ROLE_USER') %}
+            {% if display_roles is empty %}
+                <span class="badge bg-blue-lt">{{ 'user.role.user'|trans }}</span>
+            {% else %}
+                {% for role in display_roles %}
+                    <span class="badge bg-blue-lt">{{ ('user.role.' ~ role|lower|replace({'role_': ''}))|trans }}</span>
+                {% endfor %}
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.roles', value_html: roles_html } %}
+
+        {% set active_html %}
+            {% if user.isActive %}
+                <span class="badge bg-green-lt">{{ 'common.yes'|trans }}</span>
+            {% else %}
+                <span class="badge bg-red-lt">{{ 'common.no'|trans }}</span>
+            {% endif %}
+        {% endset %}
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.is_active', value_html: active_html } %}
+
+    </div>
+    <div class="tab-pane" id="tab-meta-modal">
+
+        {% include '_include/_detail_row.html.twig' with { label: 'user.field.last_login_at', value: user.lastLoginAt ? user.lastLoginAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_at', value: user.createdAt ? user.createdAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.created_by', value: user.createdBy } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_at', value: user.updatedAt ? user.updatedAt|format_datetime(dateFormat='short', timeFormat='short') } %}
+        {% include '_include/_detail_row.html.twig' with { label: 'common.field.updated_by', value: user.updatedBy } %}
+
+    </div>
+    <div class="tab-pane" id="tab-user-history">
+        {% include '_include/_audit_timeline.html.twig' with { entity: user, entity_slug: 'user' } %}
+    </div>
+</div>

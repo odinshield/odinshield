@@ -1,0 +1,169 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{#
+  Renders a single audit Entry as a timeline <li>. Shared by the per-entity timeline
+  (`_audit_timeline_items.html.twig`) and the global compliance timeline (`audit/index.html.twig`).
+  Pass `entity_label` (already translated) to show which entity type a row belongs to — the global
+  view sets it; the per-entity view leaves it null (the page already scopes to one entity).
+  Pass `entity_class` (the audited entity's FQCN) so enum values can be resolved to German labels;
+  without it they still render, just as their raw backing value (issue #64).
+#}
+
+{# One diff value: a relation becomes the object's name, everything else goes through the
+   formatter (enums, roles, booleans, dates). Object names come from the resolver's warm cache. #}
+{% macro render_value(v, field = null, entity_class = null) %}{% if v is iterable and v.class is defined and v.id is defined %}{{ audit_object_label(v.class, v.id).label }}{% else %}{{ audit_value(entity_class, field, v) }}{% endif %}{% endmacro %}
+
+{# Collection diff: several values of the same field, each rendered like a single one. #}
+{% macro render_list(values, field = null, entity_class = null) %}{% if values is empty %}—{% else %}{% for v in values %}{{- loop.first ? '' : ', ' }}{{ _self.render_value(v, field, entity_class) -}}{% endfor %}{% endif %}{% endmacro %}
+
+{# Audited object as a name linking to its detail page; a deleted object keeps its raw id. #}
+{% macro object_link(class, id) %}{% set obj = audit_object_label(class, id) %}{% if obj.deleted %}<span class="text-secondary">{{ obj.label }}</span> <span class="badge bg-secondary-lt">{{ 'audit.object.deleted'|trans }}</span>{% elseif obj.linkable %}<a href="{{ path(obj.route, {uuid: obj.uuid}) }}">{{ obj.label }}</a>{% else %}{{ obj.label }}{% endif %}{% endmacro %}
+
+{# Coloured action badge (insert/update/associate/dissociate/remove) — used by the audit table. #}
+{% macro action_badge(type) %}
+    {% set cls = {'insert': 'bg-success-lt text-success', 'update': 'bg-warning-lt text-warning', 'associate': 'bg-info-lt text-info', 'dissociate': 'bg-secondary-lt text-secondary'}[type]|default('bg-danger-lt text-danger') %}
+    <span class="badge {{ cls }}">{{ ('audit.action.' ~ type)|trans }}</span>
+{% endmacro %}
+
+{% macro audit_entry(entry, entity_label = null, entity_class = null) %}
+    {% set type = entry.type %}
+    {% if type == 'insert' %}
+        {% set marker_class = 'bg-success-lt text-success' %}
+        {% set icon %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M12 5l0 14"/><path d="M5 12l14 0"/>
+            </svg>
+        {% endset %}
+    {% elseif type == 'update' %}
+        {% set marker_class = 'bg-warning-lt text-warning' %}
+        {% set icon %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"/>
+                <path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"/>
+                <path d="M16 5l3 3"/>
+            </svg>
+        {% endset %}
+    {% elseif type == 'associate' %}
+        {% set marker_class = 'bg-info-lt text-info' %}
+        {% set icon %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M9 15l6 -6"/>
+                <path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/>
+                <path d="M13 18l-.464 .536a5 5 0 0 1 -7.07 -7.072l.534 -.464"/>
+                <path d="M20 17v3h3"/>
+                <path d="M20 20l-3 -3"/>
+            </svg>
+        {% endset %}
+    {% elseif type == 'dissociate' %}
+        {% set marker_class = 'bg-secondary-lt text-secondary' %}
+        {% set icon %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M9 15l6 -6"/>
+                <path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/>
+                <path d="M13 18l-.464 .536a5 5 0 0 1 -7.07 -7.072l.534 -.464"/>
+                <path d="M3 3l18 18"/>
+            </svg>
+        {% endset %}
+    {% else %}
+        {% set marker_class = 'bg-danger-lt text-danger' %}
+        {% set icon %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+                <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+                <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+            </svg>
+        {% endset %}
+    {% endif %}
+
+    <li class="timeline-item">
+        <div class="timeline-marker {{ marker_class }}">{{ icon }}</div>
+        <div class="timeline-content">
+            <div class="timeline-header">
+                <span class="badge {{ marker_class }}">{{ ('audit.action.' ~ type)|trans }}</span>
+                {% if entity_label %}
+                    <span class="badge bg-blue-lt">{{ entity_label }}</span>
+                {% endif %}
+                {% if entry.username %}
+                    <span class="text-secondary small">{{ 'audit.changed_by'|trans({'%user%': entry.username}) }}</span>
+                {% endif %}
+                {% if entry.createdAt %}
+                    <span class="text-muted small ms-auto">{{ entry.createdAt|format_datetime(dateFormat='short', timeFormat='short') }}</span>
+                {% endif %}
+            </div>
+            {{ _self.audit_diffs(entry, entity_class) }}
+        </div>
+    </li>
+{% endmacro %}
+
+{#
+  Renders the field-by-field diff block for a single audit Entry (the `.timeline-diffs` list).
+  Shared by the per-entity/global timeline (inside `audit_entry`) and the global audit TABLE
+  (inside an expandable row). Empty output when the entry has no diffs.
+#}
+{% macro audit_diffs(entry, entity_class = null) %}
+    {% set type = entry.type %}
+    {% set diffs = entry.getDiffs() %}
+    {% if diffs is not empty %}
+        <div class="timeline-diffs">
+            {% if type in ['associate', 'dissociate'] %}
+                {% set rel_source = diffs['source'] ?? null %}
+                {% set rel_target = diffs['target'] ?? null %}
+                {% if rel_source and rel_target %}
+                    <div class="timeline-diff-row">
+                        <span class="timeline-diff-field">{{ audit_field(rel_source['field'] ?? '?') }}:</span>
+                        <span class="timeline-diff-value">{{ _self.render_value(rel_target) }}</span>
+                    </div>
+                {% endif %}
+            {% else %}
+                {% for field, diff in diffs %}
+                    {% if not (field starts with '@') %}
+                    {% set val_old = diff['old'] ?? null %}
+                    {% set val_new = diff['new'] ?? null %}
+                    {% if val_old is null and val_new is null and diff is iterable %}
+                        {% set arr_old = [] %}
+                        {% set arr_new = [] %}
+                        {% for item in diff %}
+                            {% if item is iterable %}
+                                {% if item['old'] is defined %}{% set arr_old = arr_old|merge([item['old']]) %}{% endif %}
+                                {% if item['new'] is defined %}{% set arr_new = arr_new|merge([item['new']]) %}{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        <div class="timeline-diff-row">
+                            <span class="timeline-diff-field">{{ audit_field(field) }}:</span>
+                            {% if type == 'insert' %}
+                                <span class="timeline-diff-value">{{ _self.render_list(arr_new, field, entity_class) }}</span>
+                            {% else %}
+                                <span class="timeline-diff-value">
+                                    {{ _self.render_list(arr_old, field, entity_class) }}
+                                    <span class="text-muted mx-1">→</span>
+                                    {{ _self.render_list(arr_new, field, entity_class) }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="timeline-diff-row">
+                            <span class="timeline-diff-field">{{ audit_field(field) }}:</span>
+                            {% if type == 'insert' %}
+                                <span class="timeline-diff-value">{{ _self.render_value(val_new, field, entity_class) }}</span>
+                            {% else %}
+                                <span class="timeline-diff-value">
+                                    {{ _self.render_value(val_old, field, entity_class) }}
+                                    <span class="text-muted mx-1">→</span>
+                                    {{ _self.render_value(val_new, field, entity_class) }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+    {% endif %}
+{% endmacro %}

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Feature or change request
+description: Propose a change or a new capability
+title: "ADD "
+labels:
+  - feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the proposal and above all the **why** — which problem does it solve?
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: Which pain point or requirement is behind this? A reference to BSI-CS 093 or another standard helps if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should it work? Which areas does it touch (controller, entity, UI …)?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What else did you consider, and why did you discard it?
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How urgent is it for you?
+      options:
+        - "low"
+        - "medium"
+        - "high"
+        - "critical"
+    validations:
+      required: false

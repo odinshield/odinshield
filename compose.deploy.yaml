@@ -1,0 +1,328 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Standalone production deployment — Traefik handles TLS termination.
+# Caddy (FrankenPHP) runs HTTP-only on the internal Docker network; no certs managed here.
+#
+# Prerequisites:
+#   - A running Traefik instance attached to an external Docker network (default: "traefik").
+#   - Traefik entrypoints named "web" (port 80) and "websecure" (port 443).
+#   - A locally built image (see .env.deploy.example)
+#
+# Usage:
+#   1. cp .env.deploy.example .env
+#   2. Edit .env — set TRAEFIK_HOST, APP_SECRET, POSTGRES_PASSWORD, MONOLOG_ERROR_TO
+#      and ODINSHIELD_IMAGE_TAG at minimum. Compose fails fast on each of them.
+#   3. docker compose -f compose.deploy.yaml up -d
+#
+# Several instances on ONE Traefik:
+#   Set INSTANCE_NAME per stack (default: "odinshield"). It keys the Traefik router,
+#   service and middleware names, which are Traefik-global — without it the second
+#   instance silently overwrites the first one's router.
+#
+# Traefik NOT terminating TLS (a reverse proxy in front of it):
+#   docker compose -f compose.deploy.yaml -f compose.frontproxy.yaml up -d
+#
+# Upgrade to a new image version:
+#   ODINSHIELD_IMAGE_TAG=2.1.0 docker compose -f compose.deploy.yaml pull && \
+#   docker compose -f compose.deploy.yaml up -d
+#
+# NOTE: image tags carry NO leading "v" — the git tag is v2.1.0, the image is 2.1.0
+# (Makefile tags from the VERSION file verbatim). Using "v2.1.0" here fails the pull.
+
+services:
+  php:
+    image: odinshield:${ODINSHIELD_IMAGE_TAG:?ODINSHIELD_IMAGE_TAG is required (use a specific tag, never latest)}
+    restart: unless-stopped
+    healthcheck:
+      # Caddy Prometheus metrics endpoint — returns 200 when FrankenPHP is fully running.
+      # /metrics requires the Prometheus module (included in dunglas/frankenphp); / returns 404.
+      test:
+        - CMD
+        - php
+        - -r
+        - "exit(false === @file_get_contents('http://localhost:2019/metrics', context: stream_context_create(['http' => ['timeout' => 5]])) ? 1 : 0);"
+      # 2-minute start window: first-deployment migrations can take 60–90 s before FrankenPHP starts.
+      start_period: 120s
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    environment:
+      TZ: ${TZ:-UTC}
+      # HTTP-only — Traefik terminates TLS; Caddy must not attempt ACME or redirect.
+      SERVER_NAME: ":80"
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      DATABASE_URL: >-
+        postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      MAILER_SENDER: ${MAILER_SENDER:-"OdinShield <noreply@example.com>"}
+      # Recipient of Monolog's prod error mails (config/packages/monolog.yaml).
+      # Must be passed through explicitly: the image ships a placeholder default in
+      # environment/.env, so an unset value fails silently into a dead mailbox
+      # rather than erroring at boot.
+      MONOLOG_ERROR_TO: ${MONOLOG_ERROR_TO:?MONOLOG_ERROR_TO is required (recipient of production error mails)}
+      # Public base URL used by Symfony's URL generator in CLI / worker / async
+      # contexts (notification mails, CSAF runner, etc.). Falls back to the Traefik
+      # host when no first-line proxy / WAF sits in front — set APP_PUBLIC_URL only
+      # when the externally-visible hostname differs from TRAEFIK_HOST.
+      DEFAULT_URI: ${APP_PUBLIC_URL:-https://${TRAEFIK_HOST}}
+      # NOTE: MANUAL_VERSION is deliberately NOT passed here, and must not be added.
+      # The manual's Markdown and its Pagefind index both ship inside the image, so
+      # the version number describes content this image already contains — a build-time
+      # property, exactly like APP_VERSION. `composer dump-env prod` bakes it in, and an
+      # operator override at runtime could only ever make the footer claim a version
+      # that does not match the shipped chapters. VersionConsistencyTest guards this.
+      # To correct a wrong manual version, release a new image; there is nothing to tune
+      # per stage.
+      # CSAF importer — both env vars optional; empty falls back to the Symfony
+      # parameter defaults in config/packages/csaf.yaml.
+      CSAF_ADMIN_EMAIL: ${CSAF_ADMIN_EMAIL:-}
+      CSAF_SCHEDULE_CRON: ${CSAF_SCHEDULE_CRON:-}
+      # Issue #63: how often to re-notify about a paused provider. Empty = the 7-day default.
+      CSAF_PAUSE_REMINDER_DAYS: ${CSAF_PAUSE_REMINDER_DAYS:-}
+      # Exploitation enricher (FIRST EPSS / CISA KEV, #134) — all optional; empty falls back
+      # to the Symfony parameter defaults in config/packages/exploitation.yaml.
+      EXPLOITATION_ADMIN_EMAIL: ${EXPLOITATION_ADMIN_EMAIL:-}
+      EXPLOITATION_SCHEDULE_CRON: ${EXPLOITATION_SCHEDULE_CRON:-}
+      EXPLOITATION_PAUSE_REMINDER_DAYS: ${EXPLOITATION_PAUSE_REMINDER_DAYS:-}
+      EXPLOITATION_KEV_URL: ${EXPLOITATION_KEV_URL:-}
+      # #223: daily check for a newer release (dashboard hint for ISB/admin). Empty = on, with the
+      # public version.json; UPDATE_CHECK_ENABLED=0 for installations without internet access.
+      UPDATE_CHECK_ENABLED: ${UPDATE_CHECK_ENABLED:-}
+      UPDATE_CHECK_URL: ${UPDATE_CHECK_URL:-}
+      # #190: CIDR exceptions to the outbound private-network block, comma-separated without
+      # spaces — e.g. an HTTP proxy on a private address. Empty = block every private target.
+      OUTBOUND_ALLOWED_SUBNETS: ${OUTBOUND_ALLOWED_SUBNETS:-}
+      # Worker count: omitted → FrankenPHP auto-detects based on CPU count.
+      # Override via FRANKENPHP_WORKER_CONFIG: "num 8" in .env if needed.
+      FRANKENPHP_LOOP_MAX: ${FRANKENPHP_LOOP_MAX:-1000}
+      # Trust the directly-connecting IP (Traefik) so that X-Forwarded-For/Proto/Port
+      # headers are used for real client IP and HTTPS detection in Symfony.
+      #
+      # #199: BEHIND A FRONT PROXY this default is wrong. Symfony takes the right-most
+      # X-Forwarded-For entry it does not trust as the client — that is the front proxy, so
+      # every user shares its IP (measured on Demo): 5 wrong passwords for `admin` lock
+      # `admin` out for everyone, 25 lock out every login, and the audit IP is worthless.
+      # List the Traefik network and the front proxy instead, e.g.
+      #
+      #   TRUSTED_PROXIES=172.22.0.0/16,10.20.0.2
+      #
+      # (see compose.frontproxy.yaml for how to read both values). Explicit addresses also
+      # avoid a quirk of REMOTE_ADDR: Symfony resolves it once, on the first request after a
+      # worker starts — if Traefik later comes back with a new container IP, it is no longer
+      # trusted until the workers recycle.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-REMOTE_ADDR}
+      # SEC-003: Defence-in-depth Host header validation. Symfony will 400 any
+      # request whose host does not match this regex — protection against Host
+      # header poisoning if Traefik routing is ever loosened.
+      #
+      # Behind a SECOND proxy (first-line reverse proxy / WAF in front of Traefik) the host
+      # Symfony checks is NOT the one Traefik routes on. With a trusted proxy Symfony prefers
+      # X-Forwarded-Host, and a front proxy that rewrites Host to the internal name still puts
+      # the public name there. TRAEFIK_HOST must then stay the INTERNAL name (Traefik has to
+      # match what it actually receives) while the PUBLIC name must be listed here — which the
+      # derived default cannot express, since it only ever yields one hostname. Override it:
+      #
+      #   TRUSTED_HOSTS_REGEX=^(public\.example\.com|internal\.example\.net|localhost)$
+      #
+      # Escape the dots when writing it by hand. The derived default below does NOT — Compose
+      # cannot transform a variable, so `example.com` there also matches `exampleXcom`.
+      TRUSTED_HOSTS_REGEX: ${TRUSTED_HOSTS_REGEX:-^(${TRAEFIK_HOST}|localhost)$}
+      # Tell Caddy itself to honour X-Forwarded-For from trusted proxies (Traefik on
+      # the docker bridge network sits in RFC1918). Without this, `client_ip` in the
+      # access log stays the Traefik container IP — CrowdSec would ban Traefik instead
+      # of the real attacker. `private_ranges` covers 10/8, 172.16/12, 192.168/16.
+      CADDY_GLOBAL_OPTIONS: |
+        servers {
+            trusted_proxies static private_ranges
+            client_ip_headers X-Forwarded-For
+        }
+      # Optional: show an environment badge in the navbar (e.g. APP_ENV_LABEL=staging).
+      # Leave unset for production — APP_ENV stays "prod" so caching/optimization is unaffected.
+      APP_ENV_LABEL: ${APP_ENV_LABEL:-}
+      # ── OPTIONAL: CrowdSec-ready access logs ──────────────────────────────
+      # Uncomment the two env vars below AND the `volumes:` block to write
+      # JSON access logs to a host directory (consumed by CrowdSec). Default
+      # is stdout (visible via `docker compose logs php`), no host mount.
+      #
+      # Host preparation (one-time, FrankenPHP runs as www-data = UID 33 in
+      # the prod image):
+      #   sudo mkdir -p /var/log/odinshield
+      #   sudo chown 33:33     /var/log/odinshield
+      #   sudo chmod 750       /var/log/odinshield
+      #
+      # CADDY_SERVER_LOG_OPTIONS: |
+      #   output file /var/log/caddy/access.log {
+      #       roll_size 100mb
+      #       roll_keep 10
+      #       roll_keep_for 720h
+      #   }
+      # CADDY_LOG_FORMAT_WRAP: "wrap json"
+    # volumes:
+    #   - ${ODINSHIELD_LOG_DIR:-/var/log/odinshield}:/var/log/caddy:rw
+    networks:
+      - traefik
+      - internal
+    # LIST syntax, not the mapping form: Compose interpolates variables in label
+    # VALUES only, never in label KEYS. As a mapping, `${INSTANCE_NAME}` inside a
+    # key would reach Traefik verbatim. In list form the whole "key=value" string
+    # is one value and is interpolated as a whole.
+    labels:
+      - "traefik.enable=true"
+      # Disambiguate which network Traefik should use to reach this container.
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik}"
+      # Router, service and middleware names below are keyed by INSTANCE_NAME.
+      # These names are Traefik-GLOBAL, not stack-local: two stacks on the same
+      # Traefik that both call their router "odinshield" collide, and one of them
+      # silently disappears. The default is the historical name, so a
+      # single-instance deployment needs no new variable.
+      # ── HTTPS router ──────────────────────────────────────────────────────────
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.rule=Host(`${TRAEFIK_HOST:?TRAEFIK_HOST is required}`)"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.entrypoints=websecure"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.tls=true"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}"
+      - "traefik.http.services.${INSTANCE_NAME:-odinshield}.loadbalancer.server.port=80"
+      # ── HTTP → HTTPS redirect ─────────────────────────────────────────────────
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}-http.rule=Host(`${TRAEFIK_HOST:?TRAEFIK_HOST is required}`)"
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}-http.entrypoints=web"
+      # The value references the middleware name and has to move with it.
+      - "traefik.http.routers.${INSTANCE_NAME:-odinshield}-http.middlewares=${INSTANCE_NAME:-odinshield}-https-redirect"
+      - "traefik.http.middlewares.${INSTANCE_NAME:-odinshield}-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.${INSTANCE_NAME:-odinshield}-https-redirect.redirectscheme.permanent=true"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  worker:
+    image: odinshield:${ODINSHIELD_IMAGE_TAG:?ODINSHIELD_IMAGE_TAG is required (use a specific tag, never latest)}
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    # `scheduler_default` + `scheduler_csaf` + `scheduler_exploitation` are the virtual transports
+    # Symfony Scheduler writes its cron-ticks to (one per ScheduleProvider). Without them in
+    # the consume list, no RecurringMessage fires — the schedule shows up in debug:scheduler
+    # but never advances. See `src/Schedule.php` + `src/Scheduler/CsafImportSchedule.php` +
+    # `src/Scheduler/ExploitationEnrichmentSchedule.php`.
+    command:
+      - php
+      - bin/console
+      - messenger:consume
+      - async
+      - scheduler_default
+      - scheduler_csaf
+      - scheduler_exploitation
+      - --time-limit=3600
+      - --memory-limit=128M
+      - -vv
+    environment:
+      TZ: ${TZ:-UTC}
+      APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
+      DATABASE_URL: >-
+        postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      MAILER_SENDER: ${MAILER_SENDER:-"OdinShield <noreply@example.com>"}
+      # Recipient of Monolog's prod error mails (config/packages/monolog.yaml).
+      # Must be passed through explicitly: the image ships a placeholder default in
+      # environment/.env, so an unset value fails silently into a dead mailbox
+      # rather than erroring at boot.
+      MONOLOG_ERROR_TO: ${MONOLOG_ERROR_TO:?MONOLOG_ERROR_TO is required (recipient of production error mails)}
+      APP_ENV_LABEL: ${APP_ENV_LABEL:-}
+      # Public base URL — same reasoning as in the php block. The worker MUST have
+      # this set because notification mails (MailNotifier) are generated here in
+      # the async Messenger handler, far away from the originating HTTP request.
+      DEFAULT_URI: ${APP_PUBLIC_URL:-https://${TRAEFIK_HOST}}
+      # CSAF importer — the worker hosts the Scheduler, so the cron expression must
+      # be available here too. Empty falls back to the Symfony parameter default.
+      CSAF_ADMIN_EMAIL: ${CSAF_ADMIN_EMAIL:-}
+      CSAF_SCHEDULE_CRON: ${CSAF_SCHEDULE_CRON:-}
+      # Issue #63: how often to re-notify about a paused provider. Empty = the 7-day default.
+      CSAF_PAUSE_REMINDER_DAYS: ${CSAF_PAUSE_REMINDER_DAYS:-}
+      # Exploitation enricher — same reasoning as CSAF above.
+      EXPLOITATION_ADMIN_EMAIL: ${EXPLOITATION_ADMIN_EMAIL:-}
+      EXPLOITATION_SCHEDULE_CRON: ${EXPLOITATION_SCHEDULE_CRON:-}
+      EXPLOITATION_PAUSE_REMINDER_DAYS: ${EXPLOITATION_PAUSE_REMINDER_DAYS:-}
+      EXPLOITATION_KEV_URL: ${EXPLOITATION_KEV_URL:-}
+      # #223: the worker runs the daily update check; same values as for php above.
+      UPDATE_CHECK_ENABLED: ${UPDATE_CHECK_ENABLED:-}
+      UPDATE_CHECK_URL: ${UPDATE_CHECK_URL:-}
+      # #190: CIDR exceptions to the outbound private-network block, comma-separated without
+      # spaces — e.g. an HTTP proxy on a private address. Empty = block every private target.
+      OUTBOUND_ALLOWED_SUBNETS: ${OUTBOUND_ALLOWED_SUBNETS:-}
+      # php container already ran migrations on startup.
+      SKIP_MIGRATIONS: "1"
+    networks:
+      # `internal` allows DB access. `traefik` is added so the worker can reach
+      # external services (e.g. outbound SMTP for Symfony Mailer's async queue,
+      # future NVD/MITRE CVE sync, etc.). Traefik does not route to the worker
+      # because no `traefik.enable: true` label is set — the network membership
+      # is purely for egress, not ingress.
+      - internal
+      - traefik
+    depends_on:
+      database:
+        condition: service_healthy
+      php:
+        condition: service_healthy
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-18.4}-alpine
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      PGTZ: ${TZ:-UTC}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - internal
+    # What's Up Docker (WUD) image-update monitoring — opt-in per instance.
+    #
+    # Default OFF on purpose: the Postgres image is the same in every instance, so
+    # if all of them watched it, WUD would report the identical update once per
+    # instance. Only selected instances set WUD_WATCH=true in their .env. A label
+    # whose value is "false" is ignored by WUD, so carrying it costs nothing.
+    #
+    # The include pattern must match the tag this template actually builds —
+    # `postgres:<version>-alpine`, NOT `-alpine3.23` as older hand-maintained
+    # copies use. A pattern that never matches looks correct and does nothing.
+    # `$$` is the Compose escape for a literal `$`.
+    #
+    # No wud labels on php and worker: the app image comes from our own registry
+    # and is rolled out by hand, deliberately in lockstep.
+    labels:
+      - wud.watch=${WUD_WATCH:-false}
+      - wud.tag.include=^\d+\.\d+-alpine$$
+    volumes:
+      - database_data:/var/lib/postgresql:rw
+
+networks:
+  # External network shared with the Traefik container — must exist before `docker compose up`.
+  # Create once on the host: docker network create traefik
+  #
+  # #107: on a host whose uplink runs below the Ethernet default of 1500 — Hetzner Cloud uses
+  # 1450 — create it with a matching MTU instead, or outbound requests from php/worker will hang
+  # on large responses while small ones pass:
+  #
+  #   docker network create --opt com.docker.network.driver.mtu=1450 traefik
+  #
+  # A `driver_opts` entry here would NOT help: Compose ignores it, without warning, for a network
+  # declared `external: true` (measured 2026-09-11 — the network keeps 1500). The MTU comes from
+  # the `docker network create` and can only be changed by removing and recreating the network.
+  # Host-wide, `/etc/docker/daemon.json` → `default-network-opts.bridge` is the better place, and
+  # it likewise applies only to networks created after the change. See
+  # `.claude/rules/deployment-ops.md`, "Path MTU in clouds".
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}
+  # Isolated backend network — database and worker are never reachable from Traefik.
+  internal:
+    internal: true
+
+volumes:
+  database_data:

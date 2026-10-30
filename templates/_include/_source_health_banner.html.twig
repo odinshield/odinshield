@@ -1,0 +1,52 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{# Issue #63: warns the ISB that advisory sources are down — count and duration only.
+
+   Deliberately carries NO provider name and NO error text. The link to /import-status appears
+   only when the caller passes show_import_status_link (#299): that page is ROLE_ADMIN-only by a
+   decision documented on ImportStatusController ("do not widen this gate"). The ISB owns the
+   fachliche statement "my information gathering is incomplete" and gets no link; the admin owns
+   the repair and is led straight to it.
+
+   Deliberately NOT dismissible either. The trigger for this banner was a 74-day outage that
+   stayed invisible although the auto-pause mail had gone out — a warning that can be clicked
+   away repeats exactly that failure. It disappears when the sources are healthy again, not
+   before.
+
+   Variables:
+   - source_health: \App\Import\ImportSourceHealth — never null here, the caller checks
+   - show_import_status_link: bool — decided by the controller, mirrors the /import-status gate
+#}
+{% set broken_days = source_health.daysSinceOldestSuccess() %}
+<div class="alert alert-warning mb-3" role="alert">
+    <div class="d-flex">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" class="icon alert-icon me-2" aria-hidden="true">
+                <path d="M12 9v4"/>
+                <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/>
+                <path d="M12 16h.01"/>
+            </svg>
+        </div>
+        <div>
+            <h2 class="alert-title h4">
+                {{ 'dashboard.source_health.title'|trans({'%count%': source_health.disruptedCount}) }}
+            </h2>
+            <div class="text-secondary">
+                {% if broken_days is null %}
+                    {{ 'dashboard.source_health.body_never'|trans }}
+                {% else %}
+                    {{ 'dashboard.source_health.body_since'|trans({'%days%': broken_days}) }}
+                {% endif %}
+            </div>
+            {% if show_import_status_link %}
+                <div class="mt-2">
+                    <a href="{{ path('app_import_status') }}" class="alert-link">{{ 'dashboard.source_health.link'|trans }}</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

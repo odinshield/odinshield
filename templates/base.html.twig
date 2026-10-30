@@ -1,0 +1,97 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<!DOCTYPE html>
+{% set _theme_cookie = app.request.cookies.get('theme') %}
+{% set _theme = _theme_cookie in ['light', 'dark'] ? _theme_cookie : (app.user and app.user.theme ? app.user.theme.value : null) %}
+<html lang="{{ app.request.locale }}"{% if _theme %} data-bs-theme="{{ _theme }}"{% endif %}>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}OdinShield{% endblock %}</title>
+        {% block head_meta %}{% endblock %}
+        <link rel="icon" href="{{ asset('img/odinshield.ico') }}" type="image/x-icon">
+        {% block stylesheets %}{% endblock %}
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+
+        {# Hot reload stays debug-only and self-hosted: the upstream recipe pulls idiomorph and
+           frankenphp-hot-reload from jsDelivr, which our CSP (SecurityHeadersListener) blocks. #}
+        {% set frankenphp_hot_reload = app.debug ? app.request.server.get('FRANKENPHP_HOT_RELOAD') : null %}
+        {% if frankenphp_hot_reload %}
+        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
+        <script src="{{ asset('vendor/idiomorph/idiomorph.index.js') }}"></script>
+        <script src="{{ asset('vendor/frankenphp-hot-reload/frankenphp-hot-reload.index.js') }}" type="module"></script>
+        {% endif %}
+    </head>
+    <body class="{% block body_class %}{% endblock %}" data-controller="occurrence-status-modal toast-listener tab-hash"
+          data-occurrence-status-modal-loading-text-value="{{ 'common.loading'|trans }}"
+          data-occurrence-status-modal-error-text-value="{{ 'common.load_error'|trans }}">
+        <a href="#main-content" class="visually-hidden-focusable">{{ 'common.skip_to_content'|trans }}</a>
+        <div class="page">
+            {% block sidebar %}
+                {% include '_layout/_sidebar.html.twig' %}
+            {% endblock %}
+
+            {% block navbar %}
+                {% include '_layout/_navbar.html.twig' with {container_class: block('container_class')} %}
+            {% endblock %}
+
+            <div class="page-wrapper" id="main-content">
+                {% block page_header %}{% endblock %}
+
+                <div class="page-body">
+                    {# #218: the table lists override this with container-fluid so they grow with the window;
+                       everything else stays capped. Navbar, footer and the lists' page_header reuse it, so
+                       the right edge lines up on every page. #}
+                    <div class="{% block container_class %}container-xl{% endblock %}">
+                        {% block body %}{% endblock %}
+                    </div>
+                </div>
+
+                {% block footer %}
+                    {% include '_layout/_footer.html.twig' with {container_class: block('container_class')} %}
+                {% endblock %}
+            </div>
+        </div>
+
+        <div id="turbo-side-effects"></div>
+
+        {# #263: screen readers reliably announce only a change inside a live region that already
+           exists, not a region inserted together with its text. These two stay empty in the markup,
+           survive Turbo visits (data-turbo-permanent) and receive the toast text from announceToast()
+           in assets/toast.js; the visible toasts carry no role/aria-live, so nothing is read twice.
+           aria-atomic="false" overrides the implicit "true" of both roles: only the new message is
+           read, not every message still in the region. #}
+        <div id="toast-announcer-polite" class="visually-hidden" role="status" aria-live="polite" aria-atomic="false" data-turbo-permanent></div>
+        <div id="toast-announcer-assertive" class="visually-hidden" role="alert" aria-live="assertive" aria-atomic="false" data-turbo-permanent></div>
+
+        {% include '_include/_occurrence_status_modal.html.twig' %}
+
+        {% set flash_types = {'success': 'toast--success', 'error': 'toast--danger', 'warning': 'toast--warning', 'info': 'toast--info'} %}
+        {% set all_flashes = app.flashes %}
+        {% if all_flashes is not empty %}
+        <div class="toast-container position-fixed top-0 end-0 p-3 toast-container--offset">
+            {% for type, messages in all_flashes %}
+                {% set modifier = flash_types[type] ?? 'toast--info' %}
+                {# #205: warnings and errors stay until closed and interrupt the screen reader; success/info
+                   fade after 5 s and are announced politely. Same split as spawnToast() in assets/toast.js.
+                   #263: the toast controller announces the text through the live regions above. #}
+                {% set urgent = type in ['error', 'warning'] %}
+                {% for message in messages %}
+                <div class="toast fade align-items-center {{ modifier }}"
+                     {% if urgent %}data-bs-autohide="false"{% endif %}
+                     data-controller="toast" data-toast-level-value="{{ type }}">
+                    <div class="d-flex">
+                        <div class="toast-body">{{ message|trans }}</div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ 'common.close'|trans }}"></button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </body>
+</html>

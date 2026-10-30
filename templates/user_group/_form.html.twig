@@ -1,0 +1,64 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% from '_include/_form_macros.html.twig' import field_errors %}
+<div class="card-body">
+{{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+{{ form_widget(form.lockVersion) }}
+
+
+{% if conflict ?? false %}
+    {% include '_include/_optimistic_lock_banner.html.twig' with {
+        last_editor: lastEditor ?? null,
+        last_edited_at: lastEditedAt ?? null,
+        audit_url: path('app_user_group_show', {uuid: user_group.uuid}) ~ '#tab-user-group-history',
+    } only %}
+{% endif %}
+
+<div class="row">
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.name.vars.id }}">
+            {{ form.name.vars.label|trans }}
+            {% if form.name.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.name, {'attr': {'class': 'form-control' ~ (not form.name.vars.valid ? ' is-invalid')}}) }}
+        {{ field_errors(form.name) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.users.vars.id }}">
+            {{ form.users.vars.label|trans }}
+            {% if form.users.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.users, {'attr': {'class': 'form-select' ~ (not form.users.vars.valid ? ' is-invalid'), 'data-controller': 'tom-select', 'data-placeholder': 'user_group.field.users_placeholder'|trans}}) }}
+        {{ field_errors(form.users) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.assetTypes.vars.id }}">
+            {{ form.assetTypes.vars.label|trans }}
+            {% if form.assetTypes.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.assetTypes, {'attr': {'class': 'form-select' ~ (not form.assetTypes.vars.valid ? ' is-invalid'), 'data-controller': 'tom-select', 'data-placeholder': 'user_group.field.asset_types_placeholder'|trans}}) }}
+        {{ field_errors(form.assetTypes) }}
+    </div>
+    <div class="col-12 mb-3">
+        <label class="form-label" for="{{ form.description.vars.id }}">
+            {{ form.description.vars.label|trans }}
+            {% if form.description.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        </label>
+        {{ form_widget(form.description, {'attr': {'class': 'form-control' ~ (not form.description.vars.valid ? ' is-invalid'), 'rows': 4}}) }}
+        {{ field_errors(form.description) }}
+    </div>
+</div>
+
+<div class="form-footer d-flex justify-content-between">
+    <a href="{{ (return_to_show ?? false) ? path('app_user_group_show', {'uuid': user_group.uuid}|merge(return_params ?? {})) : path('app_user_group_index', return_params ?? {}) }}" class="btn btn-outline-secondary">
+        {{ 'common.cancel'|trans }}
+    </a>
+    <button type="submit" class="btn btn-primary" data-controller="form-submit">
+        {{ (button_label ?? 'user_group.save')|trans }}
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>

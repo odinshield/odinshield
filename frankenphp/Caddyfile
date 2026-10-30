@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+{
+	skip_install_trust
+
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp {
+		{$FRANKENPHP_CONFIG}
+	}
+}
+
+{$CADDY_EXTRA_CONFIG}
+
+{$SERVER_NAME:localhost} {
+	# Access log with Authorization-header redaction.
+	# - dev: both env vars empty → stdout, console format
+	# - prod (compose.deploy.yaml): CADDY_SERVER_LOG_OPTIONS redirects to a file,
+	#   CADDY_LOG_FORMAT_WRAP sets `wrap json` for CrowdSec ingestion.
+	log {
+		{$CADDY_SERVER_LOG_OPTIONS}
+		format filter {
+			request>uri query {
+				replace authorization REDACTED
+			}
+			{$CADDY_LOG_FORMAT_WRAP}
+		}
+	}
+
+	root /app/public
+	encode zstd br gzip
+
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	# Permissions-Policy is set by SecurityHeadersListener in PHP (covers all deploy targets).
+
+	# SEC-MD02: Pagefind index assets are NOT public — route every /pagefind/* request
+	# through Symfony so PagefindAssetController can enforce IS_AUTHENTICATED_FULLY before
+	# streaming the file. This must come BEFORE the @phpRoute rewrite so it overrides the
+	# file-exists shortcut that would otherwise let file_server hand them out unauthenticated.
+	@pagefindRoute path /pagefind/*
+	rewrite @pagefindRoute index.php
+
+	@phpRoute {
+		not file {path}
+	}
+	rewrite @phpRoute index.php
+
+	@frontController path index.php
+	php @frontController {
+		{$FRANKENPHP_SITE_CONFIG}
+
+		worker {
+			file ./public/index.php
+			{$FRANKENPHP_WORKER_CONFIG}
+		}
+	}
+
+	# SEC-014 (pentest F7): static assets are served by file_server and never reach
+	# PHP, so SecurityHeadersListener (kernel.response, main request only) does not
+	# cover them. Set the two headers the scan flagged as missing on /assets/* — the
+	# `file {path}` matcher targets exactly the static responses, so dynamic PHP
+	# responses (which already carry the full header set) are untouched, no duplication.
+	@staticAsset file {path}
+	header @staticAsset {
+		X-Content-Type-Options nosniff
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+	}
+
+	file_server {
+		hide *.php
+	}
+}

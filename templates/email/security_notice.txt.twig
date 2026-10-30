@@ -1,0 +1,19 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% set key = 'email.security_notice.' ~ notice %}
+{% set params = {
+    '%username%': user.username,
+    '%date%': changed_at|format_datetime(dateFormat: 'medium', timeFormat: 'short', locale: locale),
+    '%new_email%': new_email ?? '',
+} %}
+{{ 'email.security_notice.greeting'|trans({'%name%': user.firstName ?? user.username}) }},
+
+{{ (key ~ (by_admin ? '.intro_admin' : '.intro'))|trans(params) }}
+
+{{ 'email.security_notice.not_you'|trans }}
+
+{{ 'email.vulnerability_assigned.outro'|trans }}
+
+{{ 'email.security_notice.footer'|trans }}

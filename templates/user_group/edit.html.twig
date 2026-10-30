@@ -1,0 +1,39 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'user_group.edit'|trans }} - OdinShield{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <a href="{{ return_to_show ? path('app_user_group_show', {'uuid': user_group.uuid}|merge(return_params)) : path('app_user_group_index', return_params) }}" class="btn btn-ghost-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M15 6l-6 6l6 6"/>
+                    </svg>
+                    {{ (return_to_show ? 'common.back_to_detail' : 'user_group.back_to_list')|trans }}
+                </a>
+            </div>
+            <div class="col">
+                <h1 class="page-title">{{ 'user_group.edit'|trans }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            {{ include('user_group/_form.html.twig', {'button_label': 'user_group.update', 'return_params': return_params}) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

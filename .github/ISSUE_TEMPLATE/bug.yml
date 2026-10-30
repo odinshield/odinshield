@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# English, unlike the Gitea originals in .gitea/ISSUE_TEMPLATE/: this tracker is the
+# public one, the Gitea instance stays the internal (German) working tracker.
+name: Bug report
+description: Report something OdinShield gets wrong
+title: "FIX "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The more of this you can fill in, the faster it can be narrowed down.
+
+        **Found a security issue? Do not open an issue here** — see [SECURITY.md](../blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Which OdinShield version? Shown in the application footer, or in the VERSION file.
+      placeholder: "2.0.5"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happens instead? Error messages, logs (var/log/), screenshots.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: As short as you can make them, numbered.
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: How bad is it for you?
+      options:
+        - "low — cosmetic or easily worked around"
+        - "medium — a workflow is impaired"
+        - "high — a workflow is blocked"
+        - "critical — data loss or wrong numbers"
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Environment
+      description: Browser, deployment (Traefik / front proxy), database size, the role the user had.
+    validations:
+      required: false

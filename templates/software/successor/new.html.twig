@@ -1,0 +1,138 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+{% extends 'base.html.twig' %}
+
+{% from '_include/_form_macros.html.twig' import eol_datepicker, help_toggle, help_text, help_switch, field_errors %}
+
+{% macro field(f, widget_class = 'form-control') %}
+    <label class="form-label" for="{{ f.vars.id }}">
+        {{ f.vars.label|trans }}
+        {% if f.vars.required %}<span class="text-danger ms-1">*</span>{% endif %}
+        {{ help_toggle(f.vars.id, f.vars.help) }}
+    </label>
+    {{ form_widget(f, {'attr': {'class': widget_class ~ (not f.vars.valid ? ' is-invalid')}}) }}
+    {{ help_text(f.vars.id, f.vars.help) }}
+    {{ field_errors(f) }}
+{% endmacro %}
+
+{% block title %}{{ 'software.successor.action'|trans }} - OdinShield{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-print-none">
+    <div class="container-xl">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <a href="{{ path('app_software_show', {'uuid': predecessor.uuid}|merge(return_params)) }}" class="btn btn-ghost-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon">
+                        <path d="M15 6l-6 6l6 6"/>
+                    </svg>
+                    {{ 'common.back'|trans }}
+                </a>
+            </div>
+            <div class="col">
+                <h1 class="page-title">
+                    {{ 'software.successor.heading'|trans({'%name%': predecessor.name ~ ' ' ~ predecessor.version}) }}
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row row-cards">
+    <div class="col-lg-10"
+         data-controller="successor-defaults"
+         data-successor-defaults-ag-prefix-value="{{ form.vars.full_name }}[ag_choice_"
+         data-successor-defaults-action-prefix-value="{{ form.vars.full_name }}[predecessor_action]"
+         {# #214: a re-rendered submit carries the user's own choices — the controller must not reset them. #}
+         data-successor-defaults-submitted-value="{{ form.vars.submitted ? 'true' : 'false' }}">
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'data-controller': 'form-help'}}) }}
+        {{ help_switch() }}
+
+        {# The radios are rendered by hand and form_rest is suppressed, so errors that have no
+           field of their own (CSRF, extra fields) would otherwise never be shown. #}
+        {% if form.vars.errors|length > 0 %}
+            <div class="alert alert-danger" role="alert">
+                {% for error in form.vars.errors %}
+                    <div>{{ error.message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'software.successor.section.basics'|trans }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">{{ _self.field(form.version) }}</div>
+                    <div class="col-md-6">{{ _self.field(form.aliases) }}</div>
+                    <div class="col-md-6">
+                        {{ eol_datepicker(form.eolDate, app.request.locale) }}
+                    </div>
+                    <div class="col-md-6">{{ _self.field(form.maintenanceSource, 'form-select') }}</div>
+                    <div class="col-md-6">{{ _self.field(form.responsibleUser, 'form-select') }}</div>
+                    <div class="col-md-6">
+                        <div class="form-label invisible" aria-hidden="true">&nbsp;</div>
+                        <div class="form-check form-switch d-flex align-items-center gap-2" style="height: 40px">
+                            {{ form_widget(form.active, {'attr': {'class': 'form-check-input mt-0' ~ (not form.active.vars.valid ? ' is-invalid')}}) }}
+                            <label class="form-check-label" for="{{ form.active.vars.id }}">
+                                {{ form.active.vars.label|trans }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if asset_groups|length > 0 %}
+            {{ include('software/successor/_asset_groups.html.twig') }}
+        {% endif %}
+
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">{{ 'software.successor.section.predecessor'|trans }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="btn-group" role="group" aria-label="{{ 'software.successor.section.predecessor'|trans }}">
+                    {% for child in form.predecessor_action %}
+                        <input type="radio" class="btn-check"
+                               name="{{ child.vars.full_name }}"
+                               id="{{ child.vars.id }}"
+                               value="{{ child.vars.value }}"
+                               autocomplete="off"
+                               {% if child.vars.checked %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="{{ child.vars.id }}">
+                            {{ child.vars.label|trans }}
+                        </label>
+                    {% endfor %}
+                </div>
+                {{ field_errors(form.predecessor_action) }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            <a href="{{ path('app_software_show', {'uuid': predecessor.uuid}|merge(return_params)) }}" class="btn btn-outline-secondary">
+                {{ 'common.cancel'|trans }}
+            </a>
+            <button type="submit" class="btn btn-primary" data-controller="form-submit">
+                {{ 'software.successor.action'|trans }}
+            </button>
+        </div>
+
+        {# Radios are rendered above as raw HTML; suppress form_rest to avoid duplicate output.
+           The CSRF token must go through form_widget so Symfony's SameOriginCsrfTokenManager
+           Stimulus controller can attach (data-controller="csrf-protection") and emit the
+           matching double-submit cookie. #}
+        {% if form._token is defined %}
+            {{ form_widget(form._token) }}
+        {% endif %}
+        {{ form_end(form, {'render_rest': false}) }}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+framework:
+    asset_mapper:
+        # The paths to make available to the asset mapper.
+        paths:
+            - assets/
+        missing_import_mode: strict
+        # No es-module-shims fallback: it would load from ga.jspm.io, which our CSP
+        # (script-src 'self') blocks anyway, and every supported browser has native
+        # import maps. Disabling it keeps third-party hosts out of the rendered HTML.
+        importmap_polyfill: false
+
+when@prod:
+    framework:
+        asset_mapper:
+            missing_import_mode: warn

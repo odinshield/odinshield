@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# Weekly CrowdSec hub upgrade.
+# Sundays at 03:17 UTC — off-peak, jittered minute to avoid coinciding
+# with other cron.weekly jobs (which fire at 06:25 on Debian).
+#
+# Install:
+#   sudo install -m 0644 crowdsec-hub-upgrade.cron /etc/cron.d/crowdsec-hub-upgrade
+#
+# MAILTO receives the job's output. root goes to the host's local mail
+# delivery; set the operator's address in the installed copy on the host,
+# not here.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=root
+
+17 3 * * 0 root /usr/local/bin/crowdsec-hub-upgrade.sh

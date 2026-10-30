@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+back_to_app: 'Back to Application'
+title: 'Manual'
+
+code:
+    copy: 'Copy code'
+    copied: 'Copied'
+    copy_failed: 'Copy failed'
+
+home:
+    label: 'To manual home'
+
+breadcrumb:
+    label: 'Breadcrumb'
+
+pagination:
+    finish: 'Done'
+    label: 'Page navigation'
+    next: 'Next Page'
+    previous: 'Previous Page'
+
+nav:
+    first_steps: 'Getting Started'
+    vulnerabilities: 'Manage Vulnerabilities'
+    inventory: 'Maintain Inventory'
+    team: 'Team & Responsibilities'
+    settings: 'Personal Settings'
+    reference: 'Reference'
+    faq: 'FAQ'
+    glossary: 'Glossary'
+    tips: 'Tips & Best Practices'
+
+search:
+    open: 'Open search'
+    title: 'Search the Manual'
+    placeholder: 'Type a keyword or question…'
+    no_results: 'No results found'
+    loading: 'Searching…'
+    unavailable: 'Search currently unavailable'
+    unavailable_hint: 'The search index has not been built yet. Please contact your administrator.'
+    close: 'Close'
+    result_one: '1 result'
+    result_many: '%count% results'
+    shortcut: 'Ctrl+K'
+    shortcut_mac: 'Cmd+K'
+
+toc:
+    label: 'On this page'

@@ -1,0 +1,108 @@
+{#
+    SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+    SPDX-License-Identifier: AGPL-3.0-or-later
+-#}
+<header class="navbar d-print-none sticky-top">
+    <div class="{{ container_class }}">
+        <div class="navbar-nav flex-row ms-auto align-items-center">
+            {# Environment badge — hidden in prod. APP_ENV_LABEL overrides app.environment for staging on prod image. #}
+            {% set _env = app_env_label ?: app.environment %}
+            {% if _env != 'prod' %}
+                {% set _env_color = _env == 'staging' ? 'orange' : 'red' %}
+                {% set _is_dev = _env != 'staging' %}
+                <div class="nav-item me-3 d-flex align-items-center">
+                    {# DEV is only 3 chars and looks dwarfed next to STAGING; widen padding + letter-spacing so the warning isn't visually weaker than the staging marker. #}
+                    <span class="badge bg-{{ _env_color }} text-{{ _env_color }}-fg text-uppercase fw-bold py-2 fs-5 {{ _is_dev ? 'px-4' : 'px-3' }}"
+                          {% if _is_dev %}style="letter-spacing: 0.3em;"{% endif %}>
+                        {{ _env }}
+                    </span>
+                </div>
+            {% endif %}
+
+            {# Dark mode toggle #}
+            <div class="nav-item" {{ stimulus_controller('theme_toggle', {'serverTheme': app.user and app.user.theme ? app.user.theme.value : ''}) }}>
+                <a
+                    href="#"
+                    class="nav-link px-0"
+                    {{ stimulus_action('theme_toggle', 'toggle') }}
+                    {{ stimulus_controller('tooltip') }}
+                    aria-label="{{ 'navigation.theme_toggle'|trans }}"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="bottom"
+                    title="{{ 'navigation.theme_toggle'|trans }}"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon icon-sun">
+                        <path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>
+                        <path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/>
+                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                         stroke-linejoin="round" class="icon icon-moon d-none">
+                        <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/>
+                    </svg>
+                </a>
+            </div>
+
+            {# Notifications #}
+            {{ include('_include/_notifications.html.twig') }}
+
+            {# User menu #}
+            <div class="nav-item dropdown">
+                <a
+                    href="#"
+                    class="nav-link d-flex lh-1 text-reset p-0"
+                    data-bs-toggle="dropdown"
+                    aria-label="{{ 'navigation.user_menu'|trans }}"
+                >
+                    <span class="avatar avatar-sm bg-azure text-azure-fg">
+                        {{ app.user ? app.user.avatar : '?' }}
+                    </span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    {% if app.user %}
+                    <a href="{{ path('app_settings') }}" class="dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon dropdown-item-icon">
+                            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/>
+                            <path d="M6 21v-2a4 4 0 0 1 4 -4h3.5"/>
+                            <path d="M18.42 15.61a2.1 2.1 0 0 1 2.97 2.97l-3.39 3.42h-3v-3l3.42 -3.39"/>
+                        </svg>
+                        {{ 'navigation.settings'|trans }}
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    {# SEC-020 (#195): POST + CSRF. A GET link was prefetched by Turbo on hover and logged the
+                       user out. data-turbo="false": a full page load drops Turbo's snapshot cache, so Back
+                       cannot show pages of the ended session. #}
+                    <form method="post" action="{{ path('app_logout') }}" data-turbo="false">
+                        <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('logout') }}">
+                        <button type="submit" class="dropdown-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                 stroke-linejoin="round" class="icon dropdown-item-icon">
+                                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/>
+                                <path d="M9 12h12l-3 -3"/>
+                                <path d="M18 15l3 -3"/>
+                            </svg>
+                            {{ 'navigation.logout'|trans }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{{ path('app_login') }}" class="dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                             stroke-linejoin="round" class="icon dropdown-item-icon">
+                            <path d="M9 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2"/>
+                            <path d="M3 12h13l-3 -3"/>
+                            <path d="M13 15l3 -3"/>
+                        </svg>
+                        {{ 'navigation.login'|trans }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
