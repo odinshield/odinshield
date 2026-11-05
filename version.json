@@ -1,6 +1,6 @@
 {
-  "version": "2.3.0",
-  "released": "2026-10-30",
-  "security": false,
-  "url": "https://github.com/odinshield/odinshield/releases/tag/v2.3.0"
+  "version": "2.3.1",
+  "released": "2026-11-05",
+  "security": true,
+  "url": "https://github.com/odinshield/odinshield/releases/tag/v2.3.1"
 }

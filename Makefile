@@ -176,16 +176,6 @@ warmup: ## Warmup the cache
 	@$(call GREEN, "Warmup cache...")
 	@$(SYMFONY_CONSOLE) cache:warmup
 
-.PHONY: fix-perms
-fix-perms: ## Fix permissions of var/ inside the container
-	@$(call GREEN, "Correct permissions...")
-	@$(DOCKER_PHP) chmod -R 777 var
-
-.PHONY: fix-owner
-fix-owner: ## Hand root-owned repo files and the caddy volumes to the host user (once, after the switch to a non-root dev stack)
-	@$(call GREEN, "Chown everything not owned by $(DEV_UID):$(DEV_GID)...")
-	$(DOCKER_COMP) run --rm --user 0:0 --entrypoint sh php -c 'find /app /data /config -xdev ! -uid $(DEV_UID) -exec chown $(DEV_UID):$(DEV_GID) {} + ; echo "left: $$(find /app /data /config -xdev ! -uid $(DEV_UID) | wc -l)"'
-
 .PHONY: asset-install
 asset-install: ## Install JS/CSS vendor assets via importmap
 	@$(SYMFONY_CONSOLE) importmap:install
@@ -429,16 +419,6 @@ up-dev: ## Start the dev stack (FrankenPHP + worker + Postgres + mailpit)
 	@$(call GREEN, "Starting dev stack...")
 	@mkdir -p var/symfony-lsp
 	$(DOCKER_COMP) up --detach
-
-.PHONY: up-staging
-up-staging: ## Start the staging stack
-	@$(call GREEN, "Starting staging stack...")
-	$(DOCKER_COMP) --file compose.yaml --file compose.stage.yaml up --detach --force-recreate
-
-.PHONY: up-prod
-up-prod: ## Start the prod stack (compose.yaml + compose.prod.yaml)
-	@$(call GREEN, "Starting prod stack...")
-	$(DOCKER_COMP) --file compose.yaml --file compose.prod.yaml up --detach
 
 .PHONY: sbom
 sbom: ## Generate the CycloneDX SBOM locally (the image build does this on its own)

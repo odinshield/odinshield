@@ -75,11 +75,6 @@
             "symfony/flex": true,
             "symfony/runtime": true
         },
-        "audit": {
-            "ignore": {
-                "PKSA-wtxr-p26d-nn42": "CVE-2026-45070 (symfony/mime, MIME parameter names): not reachable, OdinShield sets no MIME parameters of its own and sends no attachments. Fixed in 8.1.10 (released 2026-10-28); update and drop this entry from 2026-11-11 (two-week rule)."
-            }
-        },
         "bump-after-update": true,
         "sort-packages": true
     },

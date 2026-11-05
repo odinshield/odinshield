@@ -74,7 +74,6 @@ PLAN.md
 PROGRESS.md
 phpstan.dist.neon
 phpunit.dist.xml
-.php-cs-fixer.dist.php
 .php-cs-fixer.cache
 .phpunit.cache/
 

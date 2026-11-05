@@ -65,7 +65,6 @@ services:
     # Runs as the host user so files written into the repo are not root-owned (the claude
     # service shares the mount). Binding 80/443 works unprivileged: Docker sets
     # ip_unprivileged_port_start=0 and the frankenphp binary carries cap_net_bind_service.
-    # Existing root-owned files and caddy volumes: `make fix-owner` once.
     user: "${DEV_UID:-1000}:${DEV_GID:-1000}"
     # Network (and with it ports and the firewall) comes from netguard. NET_ADMIN is not in this
     # container's capability set, so not even root in here could change netguard's rules.
