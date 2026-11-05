@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 André Gommlich, www.odinshield.net
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# DCO check for pull requests (CONTRIBUTING.md): every commit needs a
+# `Signed-off-by: Name <email>` trailer that matches its author.
+#
+# Deliberately without third-party actions and without a checkout: the commits
+# come from the API with the read-only GITHUB_TOKEN, so nothing from the pull
+# request is executed. `pull_request` (not `pull_request_target`) keeps the token
+# read-only for forks as well.
+#
+# Only pull requests are checked. The release snapshots pushed to main
+# (deploy/publish-snapshot.sh, internal) are not contributions and carry no sign-off.
+name: DCO
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dco:
+    name: DCO
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Signed-off-by on every commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          fail=0
+          count=0
+          while IFS=$'\t' read -r sha signed expected; do
+            count=$((count + 1))
+            if [ "$signed" = "yes" ]; then
+              echo "ok    ${sha:0:7}  $expected"
+            else
+              echo "::error::Commit ${sha:0:7} has no '$expected' line. See CONTRIBUTING.md (git rebase --signoff)."
+              fail=1
+            fi
+          done < <(gh api --paginate "repos/$REPO/pulls/$PR/commits" --jq '.[]
+                     | ("Signed-off-by: " + .commit.author.name + " <" + .commit.author.email + ">") as $want
+                     | [.sha, (if (.commit.message | split("\n") | any(rtrimstr("\r") == $want)) then "yes" else "no" end), $want]
+                     | @tsv')
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No commits returned for pull request #$PR."
+            exit 1
+          fi
+          exit "$fail"

@@ -37,15 +37,22 @@ something is. A finding you are not certain about is still worth sending.
 
 ## What happens next
 
-- **Acknowledgement:** we aim to confirm receipt within a few working days. This is a small
-  project without an on-call rotation — it is an intention, not a service level.
+- **Acknowledgement:** within **2 working days** of receipt. Working days are Monday to Friday,
+  excluding public holidays in Germany and in the Free State of Saxony.
 - **Assessment:** we tell you whether we can reproduce it and how we rate it.
 - **Fix:** shipped in a regular release. Which release depends on severity.
 - **Credit:** you are named in the release notes if you want to be, and not if you do not.
 
-We ask for **coordinated disclosure**: give us a chance to ship a fix before you publish. If you
-have a deadline in mind, say so in your first message and we will tell you honestly whether it is
-realistic rather than let it lapse in silence.
+We practise **coordinated disclosure with a 90-day deadline**: please give us 90 days from your
+report to ship a fix before you publish details. If a fix is released earlier, you may publish
+once it is out. If we need longer, we say so before the deadline and explain why — we will not
+let it lapse in silence.
+
+Please note what we do **not** offer:
+
+- **No CVE assignment.** The project is not a CVE Numbering Authority and does not request CVE IDs.
+  Fixes are announced in the release notes and marked as security releases.
+- **No bug bounty.** There is no monetary reward; credit in the release notes is what we can give.
 
 ## Scope
 

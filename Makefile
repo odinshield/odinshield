@@ -13,7 +13,7 @@
 ODINSHIELD_VERSION = $(shell cat VERSION 2>/dev/null || echo 0.0.0-dev)
 # Build-time pinned dependency versions. The Dockerfile mirrors these as ARG
 # defaults; VersionConsistencyTest verifies they don't drift.
-FRANKENPHP_VERSION = 1.13.4-php8.5
+FRANKENPHP_VERSION = 1.13.5-php8.5
 PAGEFIND_VERSION = v1.5.2
 # REUSE tool for `make reuse-lint` (#244). No project dependency; pinned so a new release cannot
 # block the gate unannounced. On the host a throwaway container, in the claude container a venv.

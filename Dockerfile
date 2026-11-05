@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-ARG FRANKENPHP_VERSION=1.13.4-php8.5
+ARG FRANKENPHP_VERSION=1.13.5-php8.5
 # Node for Claude Code — only the frankenphp_claude stage copies from it (see the end of the file).
 ARG NODE_VERSION=24.22.1
 FROM dunglas/frankenphp:${FRANKENPHP_VERSION} AS frankenphp_upstream
