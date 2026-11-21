@@ -15,7 +15,7 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.7}&charset=${POSTGRES_CHARSET:-utf8}
     depends_on:
       database:
         condition: service_healthy
@@ -47,7 +47,7 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       SKIP_MIGRATIONS: "1"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.7}&charset=${POSTGRES_CHARSET:-utf8}
     # The Dockerfile HEALTHCHECK probes FrankenPHP's admin API (port 2019), which the
     # worker never starts. Disable it — the worker exits hourly by design (--time-limit)
     # and Docker's restart policy handles recovery.
@@ -61,7 +61,7 @@ services:
 
 ###> doctrine/doctrine-bundle ###
   database:
-    image: postgres:${POSTGRES_VERSION:-18.4}-alpine
+    image: postgres:${POSTGRES_VERSION:-18.7}-alpine
     environment:
       TZ: ${TZ:-UTC}
       PGTZ: ${TZ:-UTC}

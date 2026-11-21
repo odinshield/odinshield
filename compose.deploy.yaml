@@ -54,7 +54,7 @@ services:
       SERVER_NAME: ":80"
       APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
       DATABASE_URL: >-
-        postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+        postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.7}&charset=${POSTGRES_CHARSET:-utf8}
       MAILER_DSN: ${MAILER_DSN:-null://null}
       MAILER_SENDER: ${MAILER_SENDER:-"OdinShield <noreply@example.com>"}
       # Recipient of Monolog's prod error mails (config/packages/monolog.yaml).
@@ -219,7 +219,7 @@ services:
       TZ: ${TZ:-UTC}
       APP_SECRET: ${APP_SECRET:?APP_SECRET is required}
       DATABASE_URL: >-
-        postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+        postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.7}&charset=${POSTGRES_CHARSET:-utf8}
       MAILER_DSN: ${MAILER_DSN:-null://null}
       MAILER_SENDER: ${MAILER_SENDER:-"OdinShield <noreply@example.com>"}
       # Recipient of Monolog's prod error mails (config/packages/monolog.yaml).
@@ -266,7 +266,7 @@ services:
         condition: service_healthy
 
   database:
-    image: postgres:${POSTGRES_VERSION:-18.4}-alpine
+    image: postgres:${POSTGRES_VERSION:-18.7}-alpine
     restart: unless-stopped
     environment:
       TZ: ${TZ:-UTC}

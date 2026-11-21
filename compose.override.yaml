@@ -16,7 +16,7 @@ services:
       context: .
       target: frankenphp_dev
       args:
-        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.5-php8.5}
+        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.6-php8.5}
     restart: unless-stopped
     user: "0:0"
     cap_add: [NET_ADMIN, NET_RAW]
@@ -61,7 +61,7 @@ services:
       context: .
       target: frankenphp_dev
       args:
-        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.5-php8.5}
+        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.6-php8.5}
     # Runs as the host user so files written into the repo are not root-owned (the claude
     # service shares the mount). Binding 80/443 works unprivileged: Docker sets
     # ip_unprivileged_port_start=0 and the frankenphp binary carries cap_net_bind_service.
@@ -107,7 +107,7 @@ services:
       context: .
       target: frankenphp_dev
       args:
-        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.5-php8.5}
+        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.6-php8.5}
     user: "${DEV_UID:-1000}:${DEV_GID:-1000}"
     network_mode: service:netguard
     security_opt: [no-new-privileges:true]
@@ -155,7 +155,7 @@ services:
       context: .
       target: frankenphp_claude
       args:
-        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.5-php8.5}
+        FRANKENPHP_VERSION: ${FRANKENPHP_VERSION:-1.13.6-php8.5}
         NODE_VERSION: ${NODE_VERSION:-24.22.1}
         CLAUDE_CODE_VERSION: ${CLAUDE_CODE_VERSION:-2.1.308}
         BIOME_VERSION: ${BIOME_VERSION:-2.2.0}
@@ -208,7 +208,7 @@ services:
       FIREWALL_ALLOW: git.example.org:443
       # Local time for the status line's reset times and git dates (PHP keeps its own date.timezone).
       TZ: Europe/Berlin
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.4}&charset=${POSTGRES_CHARSET:-utf8}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-18.7}&charset=${POSTGRES_CHARSET:-utf8}
       # Commits from the container carry the host user's identity; the Makefile passes it from
       # the host's git config (the container has no ~/.gitconfig and .git/config is read-only).
       GIT_AUTHOR_NAME: ${GIT_USER_NAME:-}
